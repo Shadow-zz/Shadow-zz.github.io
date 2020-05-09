@@ -6,26 +6,20 @@
   <meta name="keywords" content=" hexo , tips ">
   <meta name="description" content="Hexo | Sh@d0w&#39;s blog">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<meta name="description" content="参考链接：https:&#x2F;&#x2F;github.com&#x2F;orangetw&#x2F;My-CTF-Web-Challenges 起因源于一个CTF题源码如下： &lt;?php     $sandbox &#x3D; &#39;&#x2F;www&#x2F;sandbox&#x2F;&#39; . md5(&quot;orange&quot; . $_SERVER[&#39;REMOTE_ADDR&#39;]);     @mkdir($sandbox)">
+<meta name="description" content="转自CTF下的命令执行 0x00空格绕过常见的绕过符号有： $IFS$9 、${IFS} 、%09(php环境下)、 重定向符&lt;&gt;、&lt;、  $IFS在linux下表示分隔符，如果不加{}则bash会将IFS解释为一个变量名， 加一个{}就固定了变量名，$IFS$9后面之所以加个$是为了起到截断的作用0x01命令分隔%0a  --换行符，需要php环境 %0d  --回车符，需要p">
 <meta property="og:type" content="article">
-<meta property="og:title" content="关于linux ls拼接">
-<meta property="og:url" content="https://shadow-zz.github.io/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/index.html">
+<meta property="og:title" content="命令执行">
+<meta property="og:url" content="https://shadow-zz.github.io/2020/05/09/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/index.html">
 <meta property="og:site_name" content="Sh@d0w&#39;s blog">
-<meta property="og:description" content="参考链接：https:&#x2F;&#x2F;github.com&#x2F;orangetw&#x2F;My-CTF-Web-Challenges 起因源于一个CTF题源码如下： &lt;?php     $sandbox &#x3D; &#39;&#x2F;www&#x2F;sandbox&#x2F;&#39; . md5(&quot;orange&quot; . $_SERVER[&#39;REMOTE_ADDR&#39;]);     @mkdir($sandbox)">
+<meta property="og:description" content="转自CTF下的命令执行 0x00空格绕过常见的绕过符号有： $IFS$9 、${IFS} 、%09(php环境下)、 重定向符&lt;&gt;、&lt;、  $IFS在linux下表示分隔符，如果不加{}则bash会将IFS解释为一个变量名， 加一个{}就固定了变量名，$IFS$9后面之所以加个$是为了起到截断的作用0x01命令分隔%0a  --换行符，需要php环境 %0d  --回车符，需要p">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://shadow-zz.github.io/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112257283.png">
-<meta property="og:image" content="https://shadow-zz.github.io/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112327664.png">
-<meta property="og:image" content="https://shadow-zz.github.io/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112510696.png">
-<meta property="og:image" content="https://shadow-zz.github.io/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112541246.png">
-<meta property="og:image" content="https://shadow-zz.github.io/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112609798.png">
-<meta property="og:image" content="https://shadow-zz.github.io/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112628734.png">
-<meta property="article:published_time" content="2020-05-03T03:20:45.000Z">
-<meta property="article:modified_time" content="2020-05-03T03:35:59.449Z">
+<meta property="og:image" content="https://shadow-zz.github.io/2020/05/09/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/image-20200509105742249-1588993641212.png">
+<meta property="article:published_time" content="2020-05-09T03:07:00.000Z">
+<meta property="article:modified_time" content="2020-05-09T03:08:30.309Z">
 <meta property="article:author" content="Sh@d0w">
-<meta property="article:tag" content="linux">
-<meta property="article:tag" content="ctf">
+<meta property="article:tag" content="命令执行">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://shadow-zz.github.io/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/image-20200503112257283.png">
+<meta name="twitter:image" content="https://shadow-zz.github.io/2020/05/09/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/image-20200509105742249-1588993641212.png">
 
 
 <link rel="icon" href="/img/avatar.jpg">
@@ -108,11 +102,11 @@
 
 
 <ul>
-    <li><div class="all active">全部文章<small>(15)</small></div></li>
+    <li><div class="all active">全部文章<small>(22)</small></div></li>
     
         
             
-            <li><div data-rel="备忘录">备忘录<small>(8)</small></div>
+            <li><div data-rel="备忘录">备忘录<small>(10)</small></div>
                 
             </li>
             
@@ -120,7 +114,7 @@
     
         
             
-            <li><div data-rel="安全杂项"><i class="fold iconfont icon-right"></i>安全杂项<small>(5)</small></div>
+            <li><div data-rel="安全杂项"><i class="fold iconfont icon-right"></i>安全杂项<small>(8)</small></div>
                 
                     <ul class="sub hide">
                         
@@ -140,7 +134,7 @@
     
         
             
-            <li><div data-rel="writeup">writeup<small>(2)</small></div>
+            <li><div data-rel="writeup">writeup<small>(4)</small></div>
                 
             </li>
             
@@ -156,8 +150,8 @@
     </div>
     <div><a  class="friends">友链</a></div>
 </div>
-<input type="hidden" id="yelog_site_posts_number" value="15">
-<input type="hidden" id="yelog_site_word_count" value="10.1k">
+<input type="hidden" id="yelog_site_posts_number" value="22">
+<input type="hidden" id="yelog_site_word_count" value="15k">
 <div style="display: none">
     <span id="busuanzi_value_site_uv"></span>
     <span id="busuanzi_value_site_pv"></span>
@@ -181,81 +175,17 @@
             
             <li><a target="_blank" href="https://naivekun.tk/">Naivekun&#39;s blog</a></li>
             
-            <li><a target="_blank" href="http://evilcos.me/">余弦</a></li>
-            
             <li><a target="_blank" href="https://www.waitalone.cn/">独自等待</a></li>
             
             <li><a target="_blank" href="https://www.leavesongs.com">phithon</a></li>
             
             <li><a target="_blank" href="http://wiki.ioin.in/">Sec-News</a></li>
             
-            <li><a target="_blank" href="http://le4f.net/">冷夜</a></li>
-            
-            <li><a target="_blank" href="http://bigtang.org/">bigtang</a></li>
-            
-            <li><a target="_blank" href="http://5alt.me/">md5_salt</a></li>
-            
-            <li><a target="_blank" href="https://blog.flanker017.me/">Flanker</a></li>
-            
-            <li><a target="_blank" href="https://quininer.github.io/">quininer</a></li>
-            
-            <li><a target="_blank" href="http://www.math1as.com/">Mathias</a></li>
-            
-            <li><a target="_blank" href="http://blog.wils0n.cn/">wilson</a></li>
-            
-            <li><a target="_blank" href="https://blog.iret.xyz/">Silver</a></li>
-            
-            <li><a target="_blank" href="https://www.virzz.com/">Virink</a></li>
-            
-            <li><a target="_blank" href="https://rickyhao.com/">Ricky</a></li>
-            
-            <li><a target="_blank" href="http://blog.7ell.me/">几何</a></li>
-            
-            <li><a target="_blank" href="http://www.hackersb.cn/">王松_striker</a></li>
-            
-            <li><a target="_blank" href="http://appleu0.sinaapp.com/">AppLeU0</a></li>
-            
-            <li><a target="_blank" href="https://www.ohlinge.cn/">0h1in9e</a></li>
-            
-            <li><a target="_blank" href="http://www.thinkings.org/">Tr3jer_CongRong</a></li>
-            
-            <li><a target="_blank" href="http://blog.neargle.com/">Nearg1e</a></li>
-            
-            <li><a target="_blank" href="http://www.venenof.com/">Veneno</a></li>
-            
-            <li><a target="_blank" href="https://virusdefender.net/">virusdefender</a></li>
-            
-            <li><a target="_blank" href="http://www.firesun.me/">火日攻天</a></li>
-            
-            <li><a target="_blank" href="http://www.melodia.pw/">Melody</a></li>
-            
-            <li><a target="_blank" href="http://www.yqxiaojunjie.com/">乐清小俊杰</a></li>
-            
-            <li><a target="_blank" href="http://blog.cal1.cn">猫哥</a></li>
-            
-            <li><a target="_blank" href="http://blog.albertchang.cn">albertchang</a></li>
-            
             <li><a target="_blank" href="https://blog.nuptzj.cn/">画船</a></li>
             
-            <li><a target="_blank" href="http://bendawang.site/">bendawang</a></li>
+            <li><a target="_blank" href="https://nobb.site/">Hcamael</a></li>
             
-            <li><a target="_blank" href="http://lorexxar.cn/">LoRexxar</a></li>
-            
-            <li><a target="_blank" href="http://aklis.info/">Aklis</a></li>
-            
-            <li><a target="_blank" href="https://ricterz.me/">RicterZ</a></li>
-            
-            <li><a target="_blank" href="http://o0xmuhe.me/">muhe</a></li>
-            
-            <li><a target="_blank" href="http://www.cnblogs.com/iamstudy/">lemon</a></li>
-            
-            <li><a target="_blank" href="http://www.cheery.win">Cheery</a></li>
-            
-            <li><a target="_blank" href="http://0x48.pw/">Hcamael</a></li>
-            
-            <li><a target="_blank" href="https://www.hackfun.org/">精灵</a></li>
-            
-            <li><a target="_blank" href="http://hackdog.me/">redrain</a></li>
+            <li><a target="_blank" href="https://www.cnblogs.com/W4nder/">W4nder</a></li>
             
             <li><a target="_blank" href="https://blog.phoenixlzx.com/">凤凰</a></li>
             
@@ -389,10 +319,6 @@
     </li>
     
     <li class="article-tag-list-item">
-        <a class="color3">pentset</a>
-    </li>
-    
-    <li class="article-tag-list-item">
         <a class="color4">msf</a>
     </li>
     
@@ -436,6 +362,26 @@
         <a class="color4">xxe</a>
     </li>
     
+    <li class="article-tag-list-item">
+        <a class="color3">靶场</a>
+    </li>
+    
+    <li class="article-tag-list-item">
+        <a class="color5">sql--堆叠注入</a>
+    </li>
+    
+    <li class="article-tag-list-item">
+        <a class="color2">upload</a>
+    </li>
+    
+    <li class="article-tag-list-item">
+        <a class="color4">伪协议</a>
+    </li>
+    
+    <li class="article-tag-list-item">
+        <a class="color5">命令执行</a>
+    </li>
+    
     <div class="clearfix"></div>
 </div>
 
@@ -445,6 +391,62 @@
     </div>
     
     <nav id="title-list-nav">
+        
+        <a  class="安全杂项 "
+           href="/2020/05/09/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/"
+           data-tag="命令执行"
+           data-author="" >
+            <span class="post-title" title="命令执行">命令执行</span>
+            <span class="post-date" title="2020-05-09 11:07:00">2020/05/09</span>
+        </a>
+        
+        <a  class="安全杂项 "
+           href="/2020/05/08/php%E4%BC%AA%E5%8D%8F%E8%AE%AE/"
+           data-tag="php,伪协议"
+           data-author="" >
+            <span class="post-title" title="php伪协议">php伪协议</span>
+            <span class="post-date" title="2020-05-08 15:47:39">2020/05/08</span>
+        </a>
+        
+        <a  class="备忘录 "
+           href="/2020/05/06/python/"
+           data-tag="python"
+           data-author="" >
+            <span class="post-title" title="python">python</span>
+            <span class="post-date" title="2020-05-06 17:02:13">2020/05/06</span>
+        </a>
+        
+        <a  class="安全杂项 "
+           href="/2020/05/06/%E8%BF%87%E6%BB%A4scandir%E7%9A%84%E6%A3%80%E7%B4%A2%E7%9B%AE%E5%BD%95%E6%96%B9%E6%B3%95/"
+           data-tag="php"
+           data-author="" >
+            <span class="post-title" title="过滤scandir的检索目录方法">过滤scandir的检索目录方法</span>
+            <span class="post-date" title="2020-05-06 11:43:24">2020/05/06</span>
+        </a>
+        
+        <a  class="备忘录 "
+           href="/2020/05/06/upload/"
+           data-tag="upload"
+           data-author="" >
+            <span class="post-title" title="upload">upload</span>
+            <span class="post-date" title="2020-05-06 11:34:13">2020/05/06</span>
+        </a>
+        
+        <a  class="writeup "
+           href="/2020/05/06/De1CTF-2020/"
+           data-tag="upload"
+           data-author="" >
+            <span class="post-title" title="De1CTF 2020">De1CTF 2020</span>
+            <span class="post-date" title="2020-05-06 09:50:00">2020/05/06</span>
+        </a>
+        
+        <a  class="writeup "
+           href="/2020/05/06/BUUCTF-%E5%B9%B3%E5%8F%B0/"
+           data-tag="代码审计,ctf,靶场,sql--堆叠注入"
+           data-author="" >
+            <span class="post-title" title="BUUCTF 平台">BUUCTF 平台</span>
+            <span class="post-date" title="2020-05-06 09:29:02">2020/05/06</span>
+        </a>
         
         <a  class="安全杂项 "
            href="/2020/05/03/%E5%85%B3%E4%BA%8Elinux-ls%E6%8B%BC%E6%8E%A5/"
@@ -488,7 +490,7 @@
         
         <a  class="备忘录 "
            href="/2020/05/03/msfvenom%E7%94%9F%E6%88%90%E6%9C%A8%E9%A9%AC/"
-           data-tag="pentset,msf"
+           data-tag="pentest,msf"
            data-author="" >
             <span class="post-title" title="msfvenom生成木马">msfvenom生成木马</span>
             <span class="post-date" title="2020-05-03 10:46:15">2020/05/03</span>
@@ -646,8 +648,8 @@
     .left-col .switch-area {
         display: none;
     }
-    .toc-level-3 i,
-    .toc-level-3 ol {
+    .toc-level-4 i,
+    .toc-level-4 ol {
         display: none !important;
     }
 </style>
@@ -743,7 +745,7 @@
     /*作者、标签的自动补全*/
     $(function () {
         $('.search').AutoComplete({
-            'data': ['#hexo','#文件包含','#php','#代码审计','#函数','#pentest','#pentset','#msf','#python','#docker','#linux','#tips','#ctf','#writeup','#getshell','#socket','#flask ssti','#xxe',],
+            'data': ['#hexo','#文件包含','#php','#代码审计','#函数','#pentest','#msf','#python','#docker','#linux','#tips','#ctf','#writeup','#getshell','#socket','#flask ssti','#xxe','#靶场','#sql--堆叠注入','#upload','#伪协议','#命令执行',],
             'itemHeight': 20,
             'width': 418
         }).AutoComplete('show');
@@ -783,6 +785,25 @@
         $('.pre-numbering').css('line-height',$('.has-numbering').css('line-height'));
 
         
+        
+        /* 渲染*/
+        function HTMLDecode(text) {
+            var temp = document.createElement("div");
+            temp.innerHTML = text;
+            var output = temp.innerText || temp.textContent;
+            temp = null;
+            return output;
+        }
+        if (window.mermaid){
+            window.mermaid = null
+        }
+        $.getScript("//cdn.jsdelivr.net/npm/mermaid@8.4.2/dist/mermaid.min.js", function () {
+            var mermaidOptions = JSON.parse(HTMLDecode("{&#34;theme&#34;:&#34;default&#34;,&#34;startOnLoad&#34;:true,&#34;flowchart&#34;:{&#34;useMaxWidth&#34;:false,&#34;htmlLabels&#34;:true}}"))
+            if (window.mermaid) {
+                mermaid.initialize(mermaidOptions)
+                mermaid.contentLoaded()
+            }
+        })
         
     }
 
